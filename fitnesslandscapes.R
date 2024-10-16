@@ -53,5 +53,10 @@ fitnessB <- fit_shadowB
 plot(c(fitnessA,fitnessB), ylab = "fitness", axes = F, xlab = "Genotype", main="shadow valley" )
 axis(1,at = c(1,2), labels = c("Mutated genotype", "wt"))
 axis(2)
+<<<<<<< Updated upstream
 
 TESTTESTTEST
+=======
+print("hallo Flo")
+
+>>>>>>> Stashed changes
