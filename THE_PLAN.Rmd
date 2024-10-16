@@ -16,7 +16,7 @@ numbers
 
 migration_min \<- the low numbers (poisson distribution)
 
-migration_max \<- the high numbers (pd)
+migration_max \<- the high numbers (poisson distribution)
 
 t_max \<- how long the simulation should run
 
