@@ -16,7 +16,7 @@ numbers
 
 migration_min \<- the low numbers (poisson distribution)
 
-migration_max \<- the high numbers (pd)
+migration_max \<- the high numbers (poisson distribution)
 
 t_max \<- how long the simulation should run
 
@@ -30,7 +30,7 @@ decay_rate \<- average individual loss per generation
 
 sel_coeff \<- selection pressure on the mutation
 
-## variables
+## Variables
 
 N_a \<- number of individuals with genotype a
 
@@ -38,7 +38,7 @@ N_A \<- number of individuals with genotype A
 
 N \<- total population size
 
-## model
+## Model
 
 ![](images/WhatsApp%20Image%202024-10-16%20at%203.42.52%20PM.jpeg){width="487"}
 
