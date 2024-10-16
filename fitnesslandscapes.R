@@ -46,7 +46,7 @@ fitnessA <- rep(c(rep(fit_shadowA,fitflip),rep(fit_sunA,fitflip)), season_change
 fitnessB <- rep(c(rep(fit_shadowB,fitflip),rep(fit_sunB,fitflip)), season_changes)
 plot(fitnessA, col = "blue", xlab = "generation",ylab = "fitness", type = "l", main = "four (2) season valley")
 lines(fitnessB, col = "red")
-legend(0,1.1, legend=rep(c("mut","wt"),5), col = c("blue","red"), pch = 1:10)
+legend(0,1.1, legend=c("mut","wt"), col = c("blue","red"), pch = 16)
 fitnessA <- fit_shadowA
 fitnessB <- fit_shadowB
 
