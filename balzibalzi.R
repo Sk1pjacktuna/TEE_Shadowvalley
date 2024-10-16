@@ -75,17 +75,16 @@ for (i in 1:49){
   }
 }
 
-simulate_one_gen <- function(N_a, N_A, fitnessa, fitnessA, mut_rate) {
+simulate_one_gen <- function(N_a, N_A, decay_rate, sel_coeff, mut_rate) {
   # draw offspring according to Poisson distribution
-  offsp_a <- rpois(1, N_a * fitnessa)
-  offsp_A <- rpois(1, N_A * fitnessA)
+  offsp_a <- rpois(1, N_a * (1-decay_rate))
+  offsp_A <- rpois(1, N_A * (1-decay_rate+sel_coeff))
   # draw new mutants according to Poisson distribution
   mut_a_to_A <- rpois(1, offsp_a * mut_rate)
-  mut_A_to_a <- rpois(1, offsp_A * mut_rate)
   
   # determine new population sizes of wild type and mutant
-  N_a_new <- max(offsp_a - mut_a_to_A, 0)+mut_A_to_a
-  N_A_new <- max(offsp_A - mut_A_to_a, 0) + mut_a_to_A
+  N_a_new <- max(offsp_a - mut_a_to_A, 0)
+  N_A_new <-  offsp_A + mut_a_to_A
   
   return(c(N_a_new, N_A_new))
 }
