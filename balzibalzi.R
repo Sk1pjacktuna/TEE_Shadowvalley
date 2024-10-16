@@ -64,8 +64,8 @@ lines(x_range,output[,2], col="red")
 
 
 flipswitch <- 5
-lambda_max <- 5
-lambda_min <- 1
+migration_max <- 5
+migration_min <- 1
 w <- sample(c(lambda_max,lambda_min))
 x_A <- w[1]
 x_a <- w[2]
