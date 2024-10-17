@@ -135,13 +135,13 @@ max_gen <- 10000
 N0_a <- 10000
 N0_A <- 0
 decay_rate <- 0.02
-sel_coef <- 0.3
+sel_coef <- 0.2
 flipswitch <- 20
 migrants_min <- 5
 migrants_max <- 100 #5
 mut_rate <- 0
 # flipswitch_start 1 = random, 2 = positive first, 3 = negative first
-flipswitch_start <- 50
+flipswitch_start <- 2
 # create your simulation data
 output <- simulate_pop_switching_migrants(N0_a,N0_A,decay_rate,sel_coef,flipswitch,migrants_min,migrants_max,mut_rate,max_gen, flipswitch_start)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
