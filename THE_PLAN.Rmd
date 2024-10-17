@@ -45,7 +45,7 @@ N \<- total population size
 first we simulate the process which happens every generation:
 
 ```{r}
-simulate_one_gen <- function(N_a, N_A, decay_rate, sel_coeff, mut_rate, lambda_a,lambda_A) {
+simulate_one_gen_migrants <- function(N_a, N_A, decay_rate, sel_coeff, mut_rate, lambda_a,lambda_A) {
   # draw offspring according to Poisson distribution
   offsp_a <- rpois(1, N_a * (1-decay_rate))
   offsp_A <- rpois(1, N_A * (1-decay_rate+sel_coeff))
@@ -66,7 +66,7 @@ simulate_one_gen <- function(N_a, N_A, decay_rate, sel_coeff, mut_rate, lambda_a
 And then we continue with simulating multiple generations:
 
 ```{r}
-simulate_pop <- function(N0_a, N0_A, decay_rate, sel_coeff, flipswitch, migration_min, migration_max, mut_rate, t_max) {
+simulate_pop_switching_migrants <- function(N0_a, N0_A, decay_rate, sel_coeff, flipswitch, migration_min, migration_max, mut_rate, t_max) {
   # Create the vector in which to save the results
   pop_vector <- c(N0_a, N0_A)
   # initiate the variables
@@ -84,11 +84,12 @@ simulate_pop <- function(N0_a, N0_A, decay_rate, sel_coeff, flipswitch, migratio
     } else {
       migration <- migration_a
       migration_a <- migration_A
-      migration_A <- fitness
+      migration_A <- migration
+      v <- 0
     }
     
     # redefine the current population one generation later
-    pop_new <- simulate_one_gen(pop_new[1],pop_new[2], decay_rate, sel_coeff, mut_rate,migration_a,migration_A)
+    pop_new <- simulate_one_gen_migrants(pop_new[1],pop_new[2], decay_rate, sel_coeff, mut_rate,migration_a,migration_A)
     # add the new population sizes to the output vector
     pop_vector <- rbind(pop_vector,pop_new)
     # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
@@ -107,8 +108,16 @@ now we try to plot this graph:
 
 ```{r Simulate & Plot}
 max_gen <- 1000
+N0_a <- 1000
+N0_A <- 0
+decay_rate <- 0.1
+sel_coef <- 0.2
+flipswitch <- 3
+migrants_min <- 0.5
+migrants_max <- 5
+mut_rate <- 0.001
 # create your simulation data
-output <- simulate_pop(1000,0,0.1,0.2,5,0.5,5,0.001,max_gen)
+output <- simulate_pop_switching_migrants(N0_a,N0_A,decay_rate,sel_coef,flipswitch,migrants_min,migrants_max,mut_rate,max_gen)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
 x_range <- 0:(length(output[,1])-1)
