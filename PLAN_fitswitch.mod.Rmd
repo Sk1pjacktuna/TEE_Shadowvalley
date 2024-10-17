@@ -1,0 +1,157 @@
+---
+title: "How does seasonal migration of different genotypes influence a doomed population"
+author: "Balz, Florin, Felix"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+## Parameters
+
+flipswitch \<- switch between which genotype comes in at low and high
+numbers
+
+migration_min \<- the low numbers (poisson distribution)
+
+migration_max \<- the high numbers (poisson distribution)
+
+t_max \<- how long the simulation should run
+
+N0_a \<- starting pop a
+
+N0_A \<- starting pop A
+
+mut_rate \<- mutation rate from a to A and vice versa
+
+decay_rate \<- average individual loss per generation
+
+sel_coeff \<- selection pressure on the mutation
+
+flipswitch_start \<- determines what genotype should migrate first
+
+-   1 = the choice is random
+
+-   2 = the migrants in the first "season" are mainly genotype A
+    (mutant)
+
+-   3 = the migrants in the first "season" are mainly genotype a (wt)
+
+## Variables
+
+N_a \<- number of individuals with genotype a
+
+N_A \<- number of individuals with genotype A
+
+N \<- total population size
+
+## Model
+
+![](images/WhatsApp%20Image%202024-10-16%20at%203.42.52%20PM.jpeg){width="487"}
+
+first we simulate the process which happens every generation:
+
+```{r}
+simulate_one_gen_migrants <- function(N_a, N_A, decay_rate, sel_coeff, mut_rate, lambda_a,lambda_A) {
+  # draw offspring according to Poisson distribution
+  offsp_a <- rpois(1, N_a * (1-decay_rate))
+  offsp_A <- rpois(1, N_A * (1-decay_rate+sel_coeff))
+  # draw new mutants according to Poisson distribution
+  mut_a_to_A <- rpois(1, offsp_a * mut_rate)
+  mut_A_to_a <- rpois(1, offsp_A * mut_rate)
+  # draw migrants for each genotype
+  migrants_a <- rpois(1,lambda_a)
+  migrants_A <- rpois(1,lambda_A)
+  # determine new population sizes of wild type and mutant
+  N_a_new <- max(offsp_a - mut_a_to_A, 0) + mut_A_to_a + migrants_a
+  N_A_new <- max(offsp_A - mut_A_to_a, 0) + mut_a_to_A + migrants_A
+  
+  return(c(N_a_new, N_A_new))
+}
+```
+
+And then we continue with simulating multiple generations:
+
+```{r}
+simulate_pop_switching_migrants <- function(N0_a, N0_A, decay_rate, sel_coeff, flipswitch, migration_min, migration_max, mut_rate, t_max, flipswitch_start) {
+  # Create the vector in which to save the results
+  pop_vector <- c(N0_a, N0_A)
+  # initiate the variables
+  pop_new <- c(N0_a, N0_A)
+  
+  # decides if starting migrants should be random or set
+  #the first if is the case that the choice should be random
+   if (flipswitch_start == 1){
+    migration <- sample(c(migration_min,migration_max))
+    migration_a <- migration[1]
+    migration_A <- migration[2]
+    } 
+  # this causes the mutant (better) phenotype to migrate at higher numbers first
+  else if (flipswitch_start == 2){
+      migration_a <- migration_min
+      migration_A <- migration_max
+    } 
+  # this is the case that the wt (worse) phenotype migrates at higher numbers first
+  else {
+      migration_a <- migration_max
+      migration_A <- migration_min
+    }
+
+  # run the simulation until generation t_max
+  v <- 0
+  for (i in 1:t_max+1) {
+    #define fitness of a and A for each iteration
+    if (v<flipswitch){
+      v <- v+1
+    } else {
+      migration <- migration_a
+      migration_a <- migration_A
+      migration_A <- migration
+      v <- 0
+    }
+    
+    # redefine the current population one generation later
+    pop_new <- simulate_one_gen_migrants(pop_new[1],pop_new[2], decay_rate, sel_coeff, mut_rate,migration_a,migration_A)
+    # add the new population sizes to the output vector
+    pop_vector <- rbind(pop_vector,pop_new)
+    # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
+    if (pop_new[1]+pop_new[2]>=3*(N0_a+ N0_A) | pop_new[1]+pop_new[2]==0) break
+  }
+  
+  # define the row and column names of the output vector
+  rownames(pop_vector) <- (0:t_max)[1:length(pop_vector[,1])] # note that the vector has to be cut if the simulation stopped early
+  colnames(pop_vector) <- c("a","A")
+  # return the result
+  return(pop_vector)	
+}
+```
+
+now we try to plot this graph:
+
+```{r Simulate & Plot}
+max_gen <- 10000
+N0_a <- 10000
+N0_A <- 0
+decay_rate <- 0.02
+sel_coef <- 0.3
+flipswitch <- 20
+migrants_min <- 5
+migrants_max <- 100 #5
+mut_rate <- 0
+# flipswitch_start 1 = random, 2 = positive first, 3 = negative first
+flipswitch_start <- 50
+# create your simulation data
+output <- simulate_pop_switching_migrants(N0_a,N0_A,decay_rate,sel_coef,flipswitch,migrants_min,migrants_max,mut_rate,max_gen, flipswitch_start)
+# plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
+# determine x axis range 
+print(output)
+x_range <- 0:(length(output[,1])-1)
+# this plots the total population size
+plot(x_range,output[,1]+output[,2],type='l',ylim=c(0,max(output[,1]+output[,2])),xlab = "Generation",ylab = "Population size")
+# add number of wild type individuals
+lines(x_range,output[,1], col="blue")
+# add number of mutant individuals
+lines(x_range,output[,2], col="red")
+```
