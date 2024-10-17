@@ -84,7 +84,7 @@ simulate_pop <- function(N0_a, N0_A, decay_rate, sel_coeff, flipswitch, migratio
     } else {
       migration <- migration_a
       migration_a <- migration_A
-      migration_A <- fitness
+      migration_A <- migration
     }
     
     # redefine the current population one generation later
@@ -111,6 +111,7 @@ max_gen <- 1000
 output <- simulate_pop(1000,0,0.1,0.2,5,0.5,5,0.001,max_gen)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
+print(output)
 x_range <- 0:(length(output[,1])-1)
 # this plots the total population size
 plot(x_range,output[,1]+output[,2],type='l',ylim=c(0,max(output[,1]+output[,2])),xlab = "Generation",ylab = "Population size")
