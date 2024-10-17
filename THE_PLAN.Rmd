@@ -120,6 +120,7 @@ mut_rate <- 0.001
 output <- simulate_pop_switching_migrants(N0_a,N0_A,decay_rate,sel_coef,flipswitch,migrants_min,migrants_max,mut_rate,max_gen)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
+print(output)
 x_range <- 0:(length(output[,1])-1)
 # this plots the total population size
 plot(x_range,output[,1]+output[,2],type='l',ylim=c(0,max(output[,1]+output[,2])),xlab = "Generation",ylab = "Population size")
