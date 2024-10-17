@@ -30,6 +30,15 @@ decay_rate \<- average individual loss per generation
 
 sel_coeff \<- selection pressure on the mutation
 
+flipswitch_start \<- determines what genotype should migrate first
+
+-   1 = the choice is random
+
+-   2 = the migrants in the first "season" are mainly genotype A
+    (mutant)
+
+-   3 = the migrants in the first "season" are mainly genotype a (wt)
+
 ## Variables
 
 N_a \<- number of individuals with genotype a
@@ -72,15 +81,20 @@ simulate_pop_switching_migrants <- function(N0_a, N0_A, decay_rate, sel_coeff, f
   # initiate the variables
   pop_new <- c(N0_a, N0_A)
   
-
+  # decides if starting migrants should be random or set
+  #the first if is the case that the choice should be random
    if (flipswitch_start == 1){
     migration <- sample(c(migration_min,migration_max))
     migration_a <- migration[1]
     migration_A <- migration[2]
-    } else if (flipswitch_start == 2){
+    } 
+  # this causes the mutant (better) phenotype to migrate at higher numbers first
+  else if (flipswitch_start == 2){
       migration_a <- migration_min
       migration_A <- migration_max
-    } else {
+    } 
+  # this is the case that the wt (worse) phenotype migrates at higher numbers first
+  else {
       migration_a <- migration_max
       migration_A <- migration_min
     }
@@ -103,7 +117,7 @@ simulate_pop_switching_migrants <- function(N0_a, N0_A, decay_rate, sel_coeff, f
     # add the new population sizes to the output vector
     pop_vector <- rbind(pop_vector,pop_new)
     # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
-    if (pop_new[1]+pop_new[2]>=1.5*(N0_a+ N0_A) | pop_new[1]+pop_new[2]==0) break
+    if (pop_new[1]+pop_new[2]>=3*(N0_a+ N0_A) | pop_new[1]+pop_new[2]==0) break
   }
   
   # define the row and column names of the output vector
@@ -117,17 +131,17 @@ simulate_pop_switching_migrants <- function(N0_a, N0_A, decay_rate, sel_coeff, f
 now we try to plot this graph:
 
 ```{r Simulate & Plot}
-max_gen <- 1000
-N0_a <- 1000
+max_gen <- 10000
+N0_a <- 10000
 N0_A <- 0
-decay_rate <- 0.5
-sel_coef <- 0.6
-flipswitch <- 25
-migrants_min <- 0
+decay_rate <- 0.02
+sel_coef <- 0.3
+flipswitch <- 20
+migrants_min <- 5
 migrants_max <- 100 #5
 mut_rate <- 0
-# flipswitch_start 1 = random, 2 = negative first, 3 = positive first
-flipswitch_start <- 3
+# flipswitch_start 1 = random, 2 = positive first, 3 = negative first
+flipswitch_start <- 50
 # create your simulation data
 output <- simulate_pop_switching_migrants(N0_a,N0_A,decay_rate,sel_coef,flipswitch,migrants_min,migrants_max,mut_rate,max_gen, flipswitch_start)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
