@@ -51,6 +51,8 @@ N \<- total population size
 
 ![](images/WhatsApp%20Image%202024-10-16%20at%203.42.52%20PM.jpeg){width="487"}
 
+## Code
+
 first we simulate the process which happens every generation:
 
 ```{r}

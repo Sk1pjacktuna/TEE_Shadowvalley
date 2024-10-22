@@ -98,17 +98,5 @@ for(flipswitch in switch_gens){
 }
 colnames(data_table) <- c("flipswitch","min_gen","min_size","number_of_generations")
 
-
-
-head(data_table)
-data_table[1:200,1]
-data_table 
-
-
-
-
-
-
-
-
-
+m_data_table <- c("flipswitch_av" = mean(data_table[,1]),"min_gen_av" = mean(data_table[,2]),"min_size_av" = mean(data_table[,3]),"av_no_gen" = mean(data_table[,4]))
+print(m_data_table)

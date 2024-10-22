@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 
@@ -66,4 +68,7 @@ lines(x_range,output[,1], col="blue")
 # add number of mutant individuals
 lines(x_range,output[,2], col="red")
 ```
+<<<<<<< HEAD
 
+=======
+>>>>>>> 57d04382d7fc8d1e968a99e890f536563017ed28
