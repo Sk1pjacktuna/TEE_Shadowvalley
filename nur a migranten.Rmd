@@ -46,8 +46,8 @@ simulate_pop_migrants_nur_a <- function(N0_a, N0_A, decay_rate, sel_coeff, migra
 now we try to plot this graph:
 
 ```{r Simulate & Plot}
-max_gen <- 10000
-N0_a <- 1000
+max_gen <- 1000
+N0_a <- 100
 N0_A <- 1
 decay_rate <- 0.1
 sel_coef <- 0.2
