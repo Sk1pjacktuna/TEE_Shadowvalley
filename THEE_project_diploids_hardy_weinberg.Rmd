@@ -52,13 +52,13 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   # calculate deterministic next gen pop size
   next_gen_tot_pop <- tot_pop*avg_fit
   # calculate the allele frequnecies
-  p_tot <- N_aa+0.5*N_Aa
-  q_tot <- N_AA+0.5*N_Aa
-  pmut <- rpois(1,p_tot*mut_rate)
-  qmut <- rpois(1,q_tot*mut_rate)
-  p <- (p_tot+qmut-pmut)/tot_pop
-  q <- (q_tot+pmut-qmut)/tot_pop
-  # Next generation genotype frequencies
+  a_tot <- 2*N_aa+N_Aa
+  A_tot <- 2*N_AA+N_Aa
+  a_to_A_mut <- rpois(1,a_tot*mut_rate)
+  A_to_a_mut <- rpois(1,A_tot*mut_rate)
+  p <- (a_tot+A_to_a_mut-a_to_A_mut)/(2*tot_pop)
+  q <- (A_tot+a_to_A_mut-A_to_a_mut)/(2*tot_pop)
+  # Next generation genotype frequencies; selection is applied here
   det_aa_next <- (p^2)*fitnessaa/avg_fit
   det_Aa_next <- (2*p*q)*fitnessAa/avg_fit
   det_AA_next <- (q^2)*fitnessAA/avg_fit
@@ -72,7 +72,7 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   return(c(offsp_aa, offsp_Aa,offsp_AA))
 }
 # Test the function
-print(simulate_one_gen_hardy_weinberg(100,0,100,0.3,0.3,1,0.01))
+print(simulate_one_gen_hardy_weinberg(100,0,0,0.9,0.9,1.1,0.01))
 ```
 
 ### Questions
