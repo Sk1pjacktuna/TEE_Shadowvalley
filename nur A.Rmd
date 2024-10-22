@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 
@@ -54,7 +56,7 @@ sel_coef <- 0.2
 migrants_A <- 5
 mut_rate <- 0
 # create your simulation data
-output <- simulate_pop_migrants_nur_a(N0_a, N0_A, decay_rate, sel_coef, migrants_A,mut_rate,max_gen)
+output <- simulate_pop_migrants_nur_A(N0_a, N0_A, decay_rate, sel_coef, migrants_A,mut_rate,max_gen)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
 print(head(output))
@@ -65,4 +67,4 @@ plot(x_range,output[,1]+output[,2],type='l',ylim=c(0,max(output[,1]+output[,2]))
 lines(x_range,output[,1], col="blue")
 # add number of mutant individuals
 lines(x_range,output[,2], col="red")
-````
+```
