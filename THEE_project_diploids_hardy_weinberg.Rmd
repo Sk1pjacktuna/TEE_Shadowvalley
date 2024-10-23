@@ -54,8 +54,8 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   # calculate the allele frequnecies
   a_tot <- 2*N_aa+N_Aa
   A_tot <- 2*N_AA+N_Aa
-  a_to_A_mut <- rpois(1,a_tot*mut_rate)
-  A_to_a_mut <- rpois(1,A_tot*mut_rate)
+  a_to_A_mut <- max(rpois(1,a_tot*mut_rate),a_tot)
+  A_to_a_mut <- max(rpois(1,A_tot*mut_rate),A_tot)
   p <- (a_tot+A_to_a_mut-a_to_A_mut)/(2*tot_pop)
   q <- (A_tot+a_to_A_mut-A_to_a_mut)/(2*tot_pop)
   # Next generation genotype frequencies; selection is applied here
@@ -67,7 +67,7 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   aa_migrants <- rpois(1, avgmigrants)
   
   # draw offspring according to Poisson distribution
-  offsp_aa <- rpois(1, next_gen_tot_pop*det_aa_next) + avgmigrants
+  offsp_aa <- rpois(1, next_gen_tot_pop*det_aa_next) + aa_migrants
   offsp_Aa <- rpois(1, next_gen_tot_pop*det_Aa_next)
   offsp_AA <- rpois(1, next_gen_tot_pop*det_AA_next)
   
@@ -90,7 +90,6 @@ print(simulate_one_gen_hardy_weinberg(100,0,0,0.9,0.9,1.1, 5, 0.01))
 We can now track the dynamics of the population from one generation to another, but this is not enough. We want to follow the population from time 0 until it either is rescued or goes extinct. This is what the following function does.
 
 ```{r}
-set.seed(2)
 simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate, t_max) {
   # Create the vector in which to save the results
   pop_vector <- c(N_init_aa, N_init_Aa, N_init_AA)
@@ -115,25 +114,19 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
   return(pop_vector)	
 }
 
+```
 
-# Test the function and plot the result
-# set t_max to a value to be used througout
+
+```{r}
 max_gen <- 100
-# create your simulation data
-output <- simulate_pop_HW(1000,0,100,0.9,0.9,1.1, 0,0.01,max_gen)
-
-# show the last few lines of the data table
-print(output)
-# plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
-# determine x axis range 
+output <- simulate_pop_HW(1000,0,0,0.95,0.95,1.1, 100,0.01,max_gen)
+print(tail(output,10))
 x_range <- 0:(length(output[,1])-1)
-# this plots the total population size
 plot(x_range,output[,1]+output[,2]+output[,3],type='l',ylim=c(0,max(output[,1]+output[,2]+output[,3])),xlab = "Generation",ylab = "Population size")
-# add number of wild type individuals
 lines(x_range,output[,1], col="blue")
-# add number of mutant individuals
 lines(x_range,output[,2], col="red")
 lines(x_range,output[,3], col="green")
+
 ```
 
 ### Questions
