@@ -10,8 +10,8 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   # calculate the allele frequnecies
   a_tot <- 2*N_aa+N_Aa
   A_tot <- 2*N_AA+N_Aa
-  a_to_A_mut <- max(rpois(1,a_tot*mut_rate),a_tot)
-  A_to_a_mut <- max(rpois(1,A_tot*mut_rate),A_tot)
+  a_to_A_mut <- min(rpois(1,a_tot*mut_rate),a_tot)
+  A_to_a_mut <- min(rpois(1,A_tot*mut_rate),A_tot)
   p <- (a_tot+A_to_a_mut-a_to_A_mut)/(2*tot_pop)
   q <- 1-p
   # Next generation genotype frequencies; selection is applied here
@@ -52,9 +52,6 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
   # return the result
   return(pop_vector)	
 }
-
-# Test the function
-
 # set some parameters to fixed values
 #init_a <- 1000
 #init_A <- 0
@@ -65,13 +62,12 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
 #igration_min <- 0.1
 #migration_max <- 5
 #mut_rate <- 0
-N_aa <- 1000
+N_aa <- 0
 N_Aa <- 0
-N_AA <- 100
-fitnessaa <- 0.3
-fitnessAa <- 0.3
-fitnessAA <- 1
-avgmigrants <- 4
+N_AA <- 20
+fitnessaa <- 0.9
+fitnessAa <- 0.9
+fitnessAA <- 1.1
 mut_rate <- 0.01
 t_max <- 100
 
@@ -100,21 +96,20 @@ for(avgmigrants in migrants){
       min_size <- min(total_size)
       # determine (first) generation at which this population size occurred
       min_gen <- as.numeric(which(total_size==min_size)[1])
+      # determine maximal pop size
+      max_pop <- max(total_size)
       # enter the data into the table
-      data_table <- rbind(data_table,c(avgmigrants,min_gen,min_size,number_of_generations)) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+      data_table <- rbind(data_table,c(avgmigrants,min_gen,min_size,number_of_generations,max_pop)) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
       # stop the repeated computation after no_replicates times
       if(i>no_replicates) break
     }
 }
 
+colnames(data_table) <- c("avgmigrants","generation with min pop size", "min pop size", "number of generations","maximal pop size")
 
-# colnames(data_table) <- c("flipswitch","min_gen","min_size","number_of_generations")
+boxplot(data_table[,4][data_table[,1]==0], data_table[,4][data_table[,1]==1],data_table[,4][data_table[,1]==2],data_table[,4][data_table[,1]==3],data_table[,4][data_table[,1]==4],data_table[,4][data_table[,1]==5],data_table[,4][data_table[,1]==6],data_table[,4][data_table[,1]==7],data_table[,4][data_table[,1]==8],data_table[,4][data_table[,1]==9],data_table[,4][data_table[,1]==10], main = "numbers of generations run")
 
-print(one_run)
-print(one_run[1])
-print(data_table)
+boxplot(data_table[,3][data_table[,1]==0],data_table[,3][data_table[,1]==1],data_table[,3][data_table[,1]==2],data_table[,3][data_table[,1]==3],data_table[,3][data_table[,1]==4],data_table[,3][data_table[,1]==5],data_table[,3][data_table[,1]==6],data_table[,3][data_table[,1]==7],data_table[,3][data_table[,1]==8],data_table[,3][data_table[,1]==9],data_table[,3][data_table[,1]==10],main ="minimal pop size for each avgmigrants")
 
-View(data_table)
-# gives average of the values recieved in one run (for now, it's going to do it for the whole population soon)
-data_table_av <- c("No_migrants" = mean(data_table[,1]), "min_gen_av" = mean(data_table[,2]), "min_size_av" = mean(data_table[,3]), "No_gen" = mean(data_table[,4]))
-print(data_table_av)
+boxplot(data_table[,5][data_table[,1]==0], data_table[,5][data_table[,1]==1],data_table[,5][data_table[,1]==2],data_table[,5][data_table[,1]==3],data_table[,5][data_table[,1]==4],data_table[,5][data_table[,1]==5],data_table[,5][data_table[,1]==6],data_table[,5][data_table[,1]==7],data_table[,5][data_table[,1]==8],data_table[,5][data_table[,1]==9],data_table[,5][data_table[,1]==10],main = "maximal pop size")
+
