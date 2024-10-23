@@ -62,24 +62,23 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
 #igration_min <- 0.1
 #migration_max <- 5
 #mut_rate <- 0
-N_aa <- 0
+N_aa <- 1000
 N_Aa <- 0
-N_AA <- 20
+N_AA <- 0
 fitnessaa <- 0.9
 fitnessAa <- 0.9
 fitnessAA <- 1.1
 mut_rate <- 0.01
-t_max <- 100
+t_max <- 1000
 
 # determine how often to run the simulation for each set of parameters
-no_replicates <- 100
+no_replicates <- 1000
 
 # initialize data table - where to collect the results
-data_table <- c()
 # run the simulation across all chosen parameters
 # loop over switch generations
-migrants <- 0:10
-
+migrants <- 5
+data_table <- c()
 for(avgmigrants in migrants){
     # reset counter
     i<-1
@@ -106,7 +105,8 @@ for(avgmigrants in migrants){
 }
 
 colnames(data_table) <- c("avgmigrants","generation with min pop size", "min pop size", "number of generations","maximal pop size")
-
+sort(data_table[,3])[1:50]
+boxplot(data_table[,3])
 boxplot(data_table[,4][data_table[,1]==0], data_table[,4][data_table[,1]==1],data_table[,4][data_table[,1]==2],data_table[,4][data_table[,1]==3],data_table[,4][data_table[,1]==4],data_table[,4][data_table[,1]==5],data_table[,4][data_table[,1]==6],data_table[,4][data_table[,1]==7],data_table[,4][data_table[,1]==8],data_table[,4][data_table[,1]==9],data_table[,4][data_table[,1]==10], main = "numbers of generations run")
 
 boxplot(data_table[,3][data_table[,1]==0],data_table[,3][data_table[,1]==1],data_table[,3][data_table[,1]==2],data_table[,3][data_table[,1]==3],data_table[,3][data_table[,1]==4],data_table[,3][data_table[,1]==5],data_table[,3][data_table[,1]==6],data_table[,3][data_table[,1]==7],data_table[,3][data_table[,1]==8],data_table[,3][data_table[,1]==9],data_table[,3][data_table[,1]==10],main ="minimal pop size for each avgmigrants")
