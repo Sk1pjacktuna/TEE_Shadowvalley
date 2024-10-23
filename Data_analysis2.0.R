@@ -103,6 +103,9 @@ fitnessAa <- 0.3
 fitnessAA <- 1
 mut_rate <- 0.01
 
+
+one_run <- simulate_one_gen_hardy_weinberg(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, mut_rate)
+
 # determine how often to run the simulation for each set of parameters
 no_replicates <- 100
 
@@ -123,9 +126,9 @@ for(migration_rate in migration_rates){
       # run the simulation once
       one_run <- simulate_one_gen_hardy_weinberg(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, mut_rate)
       # determine total population sizes
-      total_size <- one_run[,1] + one_run[,2] + one_run[,3]
+      total_size <- one_run[1] + one_run[2] + one_run[3]
       #number of generation at which 1.5*n0 is achieved
-      number_of_generations <- length(one_run[,1])
+      number_of_generations <- length(one_run[1])
       # determine minimum population size
       min_size <- min(total_size)
       # determine (first) generation at which this population size occurred
@@ -143,5 +146,7 @@ print(one_run)
 print(one_run[1])
 print(data_table)
 
-#m_data_table <- c("flipswitch_av" = mean(data_table[,1]),"min_gen_av" = mean(data_table[,2]),"min_size_av" = mean(data_table[,3]),"av_no_gen" = mean(data_table[,4]))
-#print(m_data_table)
+
+# gives average of the values recieved in one run (for now, it's going to do it for the whole population soon)
+data_table_av <- c("No_migrants" = mean(data_table[,1]), "min_gen_av" = mean(data_table[,2]), "min_size_av" = mean(data_table[,3]), "No_gen" = mean(data_table[,4]))
+print(data_table_av)
