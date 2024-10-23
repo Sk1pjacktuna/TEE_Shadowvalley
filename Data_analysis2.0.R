@@ -35,23 +35,33 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
   # initiate the variables
   pop_new <- c(N_init_aa, N_init_Aa, N_init_AA)
   v <- 0
+  success <- "simulated whole t_max"
   # run the simulation until generation t_max
   for (i in 1:t_max+1) {
     #define fitness of a and A for each iteration
     # redefine the current population one generation later
     pop_new <- simulate_one_gen_hardy_weinberg(pop_new[1],pop_new[2], pop_new[3], fitnessaa, fitnessAa, fitnessAA,avgmigrants, mut_rate)
-    # add the new population sizes to the output vector
-    pop_vector <- rbind(pop_vector,pop_new)
+   # add the new population sizes to the output vector
+    pop_vector <- rbind(pop_vector,pop_new) 
     # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
-    if (pop_new[1]+pop_new[2]+pop_new[3]>=5*(N_init_aa+ N_init_Aa+ N_init_AA) | pop_new[1]+pop_new[2]+pop_new[3]==0) break
+    if (pop_new[1]+pop_new[2]+pop_new[3]>=5*(N_init_aa+ N_init_Aa+ N_init_AA)){
+      success <- "Population reached maximum"
+      break
+    }else if (pop_new[1]+pop_new[2]+pop_new[3]<=2*avgmigrants){
+      success <- "Population went extinct"
+      break
+    }
   }
-  
+  pop_vector <- rbind(pop_vector,success)
   # define the row and column names of the output vector
-  rownames(pop_vector) <- (0:t_max)[1:length(pop_vector[,1])] # note that the vector has to be cut if the simulation stopped early
+  rownames(pop_vector) <- (0:(t_max+1))[1:length(pop_vector[,1])] # note that the vector has to be cut if the simulation stopped early
   colnames(pop_vector) <- c("aa","Aa","AA")
   # return the result
   return(pop_vector)	
 }
+output <- simulate_pop_HW(1000,0,0,0.9,0.9,1.1, 5,0.01,t_max)
+tail(output[,1],1)
+output[,1]
 # set some parameters to fixed values
 #init_a <- 1000
 #init_A <- 0
@@ -97,15 +107,17 @@ for(avgmigrants in migrants){
       min_gen <- as.numeric(which(total_size==min_size)[1])
       # determine maximal pop size
       max_pop <- max(total_size)
+      # determine success
+      success <- tail(one_run[,1],1)
       # enter the data into the table
-      data_table <- rbind(data_table,c(avgmigrants,min_gen,min_size,number_of_generations,max_pop)) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+      data_table <- rbind(data_table,c(avgmigrants,min_gen,min_size,number_of_generations,max_pop,success)) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
       # stop the repeated computation after no_replicates times
       if(i>no_replicates) break
     }
 }
 
 colnames(data_table) <- c("avgmigrants","generation with min pop size", "min pop size", "number of generations","maximal pop size")
-sort(data_table[,3])[1:50]
+data_table[,3][data_table[,3] <= 2*migrants]
 boxplot(data_table[,3])
 boxplot(data_table[,4][data_table[,1]==0], data_table[,4][data_table[,1]==1],data_table[,4][data_table[,1]==2],data_table[,4][data_table[,1]==3],data_table[,4][data_table[,1]==4],data_table[,4][data_table[,1]==5],data_table[,4][data_table[,1]==6],data_table[,4][data_table[,1]==7],data_table[,4][data_table[,1]==8],data_table[,4][data_table[,1]==9],data_table[,4][data_table[,1]==10], main = "numbers of generations run")
 
