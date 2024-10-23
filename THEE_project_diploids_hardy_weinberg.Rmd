@@ -44,7 +44,7 @@ In this notebook, we are implementing simulations of evolutionary rescue by a si
 We want to observe the numbers of wild-type and mutant individuals over time. As first step, we simulate one generation of the population. At time $t$, the population has $N_a$ wild-type individuals and $N_A$ mutant individuals. First, these reproduce. This is modeled by drawing a Poisson random variable according to the expected absolute number $N_a \cdot (1-r)$ of wild-type individuals, where $r$ is the decay rate of the wild type, and $N_A \cdot (1-r+s)$ of mutant individuals, where $s$ is the selective advantage of the mutant over the wild time. Then mutation from $a$ to $A$ occurs as a Poisson random variable according to the given mutation rate. This defines the composition of the population at time $t+1$.
 
 ```{r}
-simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, mut_rate) {
+simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate) {
   # calculate total pop size
   tot_pop <- N_aa+N_Aa+N_AA
   # calculate average fitness
@@ -63,8 +63,11 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   det_Aa_next <- (2*p*q)*fitnessAa/avg_fit
   det_AA_next <- (q^2)*fitnessAA/avg_fit
   
+  #migrationrate
+  aa_migrants <- rpois(1, avgmigrants)
+  
   # draw offspring according to Poisson distribution
-  offsp_aa <- rpois(1, next_gen_tot_pop*det_aa_next)
+  offsp_aa <- rpois(1, next_gen_tot_pop*det_aa_next) + avgmigrants
   offsp_Aa <- rpois(1, next_gen_tot_pop*det_Aa_next)
   offsp_AA <- rpois(1, next_gen_tot_pop*det_AA_next)
   
@@ -72,7 +75,7 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   return(c(offsp_aa, offsp_Aa,offsp_AA))
 }
 # Test the function
-print(simulate_one_gen_hardy_weinberg(100,0,0,0.9,0.9,1.1,0.01))
+print(simulate_one_gen_hardy_weinberg(100,0,0,0.9,0.9,1.1, 5, 0.01))
 ```
 
 ### Questions
@@ -88,7 +91,7 @@ We can now track the dynamics of the population from one generation to another, 
 
 ```{r}
 set.seed(2)
-simulate_pop <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, fitnessAA, mut_rate, t_max) {
+simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate, t_max) {
   # Create the vector in which to save the results
   pop_vector <- c(N_init_aa, N_init_Aa, N_init_AA)
   # initiate the variables
@@ -98,11 +101,11 @@ simulate_pop <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, 
   for (i in 1:t_max+1) {
     #define fitness of a and A for each iteration
     # redefine the current population one generation later
-    pop_new <- simulate_one_gen_hardy_weinberg(pop_new[1],pop_new[2], pop_new[3], fitnessaa, fitnessAa, fitnessAA, mut_rate)
+    pop_new <- simulate_one_gen_hardy_weinberg(pop_new[1],pop_new[2], pop_new[3], fitnessaa, fitnessAa, fitnessAA,avgmigrants, mut_rate)
     # add the new population sizes to the output vector
     pop_vector <- rbind(pop_vector,pop_new)
     # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
-    if (pop_new[1]+pop_new[2]+pop_new[3]>=5*(N_init_a+ N_init_A) | pop_new[1]+pop_new[2]==0) break
+    if (pop_new[1]+pop_new[2]+pop_new[3]>=5*(N_init_aa+ N_init_Aa+ N_init_AA) | pop_new[1]+pop_new[2]==0) break
   }
   
   # define the row and column names of the output vector
@@ -115,21 +118,22 @@ simulate_pop <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, 
 
 # Test the function and plot the result
 # set t_max to a value to be used througout
-max_gen <- 1000
+max_gen <- 100
 # create your simulation data
-output <- simulate_pop(1000,0,100,0.3,0.3,1,0.01,max_gen)
+output <- simulate_pop_HW(1000,0,100,0.9,0.9,1.1, 0,0.01,max_gen)
 
 # show the last few lines of the data table
-print(tail(output))
+print(output)
 # plot the output - note that the plot range and the x axis have to be adjusted based on the length of the table
 # determine x axis range 
 x_range <- 0:(length(output[,1])-1)
 # this plots the total population size
-plot(x_range,output[,1]+output[,2],type='l',ylim=c(0,max(output[,1]+output[,2])),xlab = "Generation",ylab = "Population size")
+plot(x_range,output[,1]+output[,2]+output[,3],type='l',ylim=c(0,max(output[,1]+output[,2]+output[,3])),xlab = "Generation",ylab = "Population size")
 # add number of wild type individuals
 lines(x_range,output[,1], col="blue")
 # add number of mutant individuals
 lines(x_range,output[,2], col="red")
+lines(x_range,output[,3], col="green")
 ```
 
 ### Questions
