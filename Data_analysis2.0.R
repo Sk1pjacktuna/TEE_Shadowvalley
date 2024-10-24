@@ -130,12 +130,12 @@ boxplot(analysis$simulated_gen[analysis$success == "reached_max"&analysis$migrat
 
 boxplot(analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 0],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 1],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 2],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 3],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 4],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 5],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 6],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 7],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 8],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 9],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 10])
 
-
-filename ="analysis.csv"
-write.csv(analysis,file = filename)
 boxplot(data_table[,4][data_table[,1]==0], data_table[,4][data_table[,1]==1],data_table[,4][data_table[,1]==2],data_table[,4][data_table[,1]==3],data_table[,4][data_table[,1]==4],data_table[,4][data_table[,1]==5],data_table[,4][data_table[,1]==6],data_table[,4][data_table[,1]==7],data_table[,4][data_table[,1]==8],data_table[,4][data_table[,1]==9],data_table[,4][data_table[,1]==10], main = "numbers of generations run")
 
 boxplot(data_table[,3][data_table[,1]==0],data_table[,3][data_table[,1]==1],data_table[,3][data_table[,1]==2],data_table[,3][data_table[,1]==3],data_table[,3][data_table[,1]==4],data_table[,3][data_table[,1]==5],data_table[,3][data_table[,1]==6],data_table[,3][data_table[,1]==7],data_table[,3][data_table[,1]==8],data_table[,3][data_table[,1]==9],data_table[,3][data_table[,1]==10],main ="minimal pop size for each avgmigrants")
 
 boxplot(data_table[,5][data_table[,1]==0], data_table[,5][data_table[,1]==1],data_table[,5][data_table[,1]==2],data_table[,5][data_table[,1]==3],data_table[,5][data_table[,1]==4],data_table[,5][data_table[,1]==5],data_table[,5][data_table[,1]==6],data_table[,5][data_table[,1]==7],data_table[,5][data_table[,1]==8],data_table[,5][data_table[,1]==9],data_table[,5][data_table[,1]==10],main = "maximal pop size")
 
+install.packages("ggplot2")
+library(ggplot2)
+datenggplot <- read.csv("analysis.csv")
