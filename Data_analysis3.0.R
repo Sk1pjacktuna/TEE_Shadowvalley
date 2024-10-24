@@ -59,11 +59,13 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
   # return the result
   return(pop_vector)	
 }
+t_max = 1000
 output <- simulate_pop_HW(1000,0,0,0.9,0.9,1.1, 5,0.01,t_max)
-tail(output[,1],1)
+tail(output,2)
+output[length(output[,1])-1]
+output[1001,2]
 as.numeric(output[,1][1])+as.numeric(output[,2][1])
-head(output[,1],-1)
-View(output)
+output[,1]
 # set some parameters to fixed values
 #init_a <- 1000
 #init_A <- 0
@@ -85,37 +87,33 @@ t_max <- 1000
 
 # determine how often to run the simulation for each set of parameters
 no_replicates <- 100
-
 # initialize data table - where to collect the results
 # run the simulation across all chosen parameters
 # loop over switch generations
 migrants <- 0:10
-data_table <- c()
-for(avgmigrants in migrants){
-    # reset counter
-    i<-1
-    repeat {
-      # increase counter by one
-      i<-i+1
-      # run the simulation once
-      one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate, t_max)
-      # determine total population sizes
-      total_size <- head(one_run[,1],-1) + head(one_run[,2],-1) + head(one_run[,3],-1)
-      #number of generation at which 1.5*n0 is achieved
-      number_of_generations <- length(one_run[,1])-1
-      # determine minimum population size
-      min_size <- min(total_size)
-      # determine (first) generation at which this population size occurred
-      min_gen <- as.numeric(which(total_size==min_size)[1])
-      # determine maximal pop size
-      max_pop <- max(total_size)
-      # determine success
-      success <- tail(one_run[,1],1)
-      # enter the data into the table
-      data_table <- rbind(data_table,c(avgmigrants,min_gen,min_size,number_of_generations,max_pop,success)) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
-      # stop the repeated computation after no_replicates times
-      if(i>no_replicates) break
-    }
+
+# create the vector for the for loop
+iteration_values <- sort(rep(migrants,no_replicates))
+# create data frame
+data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants),ncol = length(c("migration","gen_to_min_pop","min_pop_size","simulated_gen", "maximal_pop_size","success", "p_final"))))
+for(i in 1:length(iteration_values)){
+  one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i, mut_rate, t_max)
+  # determine total population sizes
+  total_size <- one_run[,1] + one_run[,2] + one_run[,3]
+  #number of generation at which 1.5*n0 is achieved
+  number_of_generations <- length(one_run[,1])-1
+  # determine minimum population size
+  min_size <- min(total_size)
+  # determine (first) generation at which this population size occurred
+  min_gen <- as.numeric(which(total_size==min_size)[1])
+  # determine maximal pop size
+  max_pop <- max(total_size)
+  # determine final allele frequencies
+  p_final <- (0.5*one_run[number_of_generations-1,1]+one_run[number_of_generations,2])/sum(one_run[number_of_generations,1:3])
+  # determine success
+  success <- tail(one_run[,1],1)
+  # enter the data into the table
+  data_table[i,] <- c(i,min_gen,min_size,number_of_generations,max_pop,success,p_final) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
 }
 
 analysis <- data.frame(migration = data_table[,1], generation_with_min_pop_size = data_table[,2], min_pop_size = data_table[,3],simulated_gen = data_table[,4],maximal_pop_size = data_table[,5],success = data_table[,6] )
@@ -130,12 +128,12 @@ boxplot(analysis$simulated_gen[analysis$success == "reached_max"&analysis$migrat
 
 boxplot(analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 0],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 1],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 2],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 3],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 4],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 5],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 6],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 7],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 8],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 9],analysis$simulated_gen[analysis$success == "extinction"&analysis$migration== 10])
 
+
+filename ="analysis.csv"
+write.csv(analysis,file = filename)
 boxplot(data_table[,4][data_table[,1]==0], data_table[,4][data_table[,1]==1],data_table[,4][data_table[,1]==2],data_table[,4][data_table[,1]==3],data_table[,4][data_table[,1]==4],data_table[,4][data_table[,1]==5],data_table[,4][data_table[,1]==6],data_table[,4][data_table[,1]==7],data_table[,4][data_table[,1]==8],data_table[,4][data_table[,1]==9],data_table[,4][data_table[,1]==10], main = "numbers of generations run")
 
 boxplot(data_table[,3][data_table[,1]==0],data_table[,3][data_table[,1]==1],data_table[,3][data_table[,1]==2],data_table[,3][data_table[,1]==3],data_table[,3][data_table[,1]==4],data_table[,3][data_table[,1]==5],data_table[,3][data_table[,1]==6],data_table[,3][data_table[,1]==7],data_table[,3][data_table[,1]==8],data_table[,3][data_table[,1]==9],data_table[,3][data_table[,1]==10],main ="minimal pop size for each avgmigrants")
 
 boxplot(data_table[,5][data_table[,1]==0], data_table[,5][data_table[,1]==1],data_table[,5][data_table[,1]==2],data_table[,5][data_table[,1]==3],data_table[,5][data_table[,1]==4],data_table[,5][data_table[,1]==5],data_table[,5][data_table[,1]==6],data_table[,5][data_table[,1]==7],data_table[,5][data_table[,1]==8],data_table[,5][data_table[,1]==9],data_table[,5][data_table[,1]==10],main = "maximal pop size")
 
-install.packages("ggplot2")
-library(ggplot2)
-datenggplot <- read.csv("analysis.csv")
