@@ -1,6 +1,8 @@
 
-data <- read.csv("analysis.csv")
+#####simulate averages of: generation at which minimal population size is reached, minimal population size, number of simulated generations, maximum population size ##########
+data <- read.csv("analysis2.0.csv")
 
+# get the average generation at which the minimum population size is reached for each number of migrants
 i = 1
 ava_gen_minpop <- c()
 for ( i in 0:10){
@@ -25,14 +27,14 @@ for ( i in 0:10){
   ava_maxpop <- c(ava_maxpop,mean(data$maximal_pop_size[data$migration == i]))
 }
 
-p1 <- plot(0:10, ava_gen_minpop, type = "l", xlab = "No. migrants", ylab = "av. gens to minpop")
-p2<- plot(0:10, ava_maxpop, type = "l", xlab = "No. migrants", ylab = "av. maxpop")
-p3 <- plot(0:10, ava_minpop, type = "l", xlab = "No. migrants", ylab = "av.minpop")
-p4 <- plot(0:10, ava_sim_gen, type = "l", xlab = "No. migrants", ylab = "av. simulated gens")
-library(patchwork)
 
+par(mfrow = c(2,2))
+plot(0:10, ava_gen_minpop, type = "l", xlab = "migrants", ylab = "gens to minpop", main = "average gens to min population size")
+plot(0:10, ava_sim_gen, type = "l", xlab = "migrants", ylab = "simulated gens", main = " average number of simulated generations")
+plot(0:10, ava_maxpop, type = "l", xlab = "migrants", ylab = "maxpop", main = "average max population size")
+plot(0:10, ava_minpop, type = "l", xlab = "migrants", ylab = "minpop", main = "average min population size")
 
-gridExtra::grid.arrange(p1,p2,ncol=2)
+#####
 
 
 
