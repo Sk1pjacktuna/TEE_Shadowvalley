@@ -83,7 +83,7 @@ fitnessaa <- 0.9
 fitnessAa <- 0.9
 fitnessAA <- 1.1
 mut_rate <- 0.01
-t_max <- 1000
+t_max <- 10000
 
 # determine how often to run the simulation for each set of parameters
 no_replicates <- 100
@@ -91,30 +91,41 @@ no_replicates <- 100
 # run the simulation across all chosen parameters
 # loop over switch generations
 migrants <- 0:10
-
-# create the vector for the for loop
+heterozygote <- c(0.9,1,1.1)
 iteration_values <- sort(rep(migrants,no_replicates))
-# create data frame
-data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants),ncol = length(c("migration","gen_to_min_pop","min_pop_size","simulated_gen", "maximal_pop_size","success", "p_final"))))
-for(i in 1:length(iteration_values)){
-  one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i, mut_rate, t_max)
-  # determine total population sizes
-  total_size <- one_run[,1] + one_run[,2] + one_run[,3]
-  #number of generation at which 1.5*n0 is achieved
-  number_of_generations <- length(one_run[,1])-1
-  # determine minimum population size
-  min_size <- min(total_size)
-  # determine (first) generation at which this population size occurred
-  min_gen <- as.numeric(which(total_size==min_size)[1])
-  # determine maximal pop size
-  max_pop <- max(total_size)
-  # determine final allele frequencies
-  p_final <- (0.5*one_run[number_of_generations-1,1]+one_run[number_of_generations,2])/sum(one_run[number_of_generations,1:3])
-  # determine success
-  success <- tail(one_run[,1],1)
-  # enter the data into the table
-  data_table[i,] <- c(i,min_gen,min_size,number_of_generations,max_pop,success,p_final) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants)*length(fitnessAa),ncol = 3))
+zahl <- 0
+for (fitnessAa in heterozygote){
+  for(i in 1:length(iteration_values)){
+    one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i], mut_rate, t_max)
+    # determine total population sizes
+    #total_size <- one_run[,1] + one_run[,2] + one_run[,3]
+    #number of generation at which 1.5*n0 is achieved
+    #number_of_generations <- length(one_run[,1])-1
+    # determine minimum population size
+    #min_size <- min(total_size)
+    # determine (first) generation at which this population size occurred
+    #min_gen <- as.numeric(which(total_size==min_size)[1])
+    # determine maximal pop size
+    #max_pop <- max(total_size)
+    # determine final allele frequencies
+    #p_final <- (0.5*one_run[number_of_generations-1,1]+one_run[number_of_generations,2])/sum(one_run[number_of_generations,1:3])
+    # determine success
+    success <- tail(one_run[,1],1)
+    # enter the data into the table
+    data_table[i+zahl,] <- c(iteration_values[i],fitnessAa,success) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+  }
+  zahl <- zahl+length(iteration_values)
 }
+data_matrix <- matrix(NA,nrow = 3,ncol = 11)
+for (i in 1:ncol(data_matrix)){
+  data_matrix[,i] <- c(sum(data_table$X3[data_table$X1 == i-1&data_table$X2 ==0.9] == 1),sum(data_table$X3[data_table$X1 == i-1&data_table$X2 ==0.9] == 2),sum(data_table$X3[data_table$X1 == i-1&data_table$X2 ==0.9] == 3))
+}
+install.packages("viridis")
+library("viridis")
+colors <- magma(3,begin = 0.2,end = 0.8)
+barplot(data_matrix,names.arg = 0:10, xlab = "Average Migrants per generation", col = colors, legend = c("extinction","happy ever after","reached max"), ylab = "proportion in %")
+
 
 analysis <- data.frame(migration = data_table[,1], generation_with_min_pop_size = data_table[,2], min_pop_size = data_table[,3],simulated_gen = data_table[,4],maximal_pop_size = data_table[,5],success = data_table[,6] )
 
