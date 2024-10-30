@@ -66,3 +66,92 @@ barplot(mig1and1.1[,12:22], col = colors, names.arg = 0:10, xlab = "mean migrant
 par(xpd = TRUE)  # Allows plotting outside the plot region
 legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
 ```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 0.9) %>%
+  mutate(final_pop_size = ifelse(final_pop_size == 0,0.1, final_pop_size))
+
+line_data <- data.frame(
+  migration_per_gen = 1:11,
+  final_pop_size = 2 * (0:10)
+) %>%
+  mutate(final_pop_size = ifelse(final_pop_size == 0, 0.1, final_pop_size))
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = final_pop_size)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  scale_y_log10()+
+  labs(x = "Mean Migrants per Generation", y = "Final Population Size",
+       title = "Distribution of Final Population Size by Migration per Generation\n(fitnessAa = 0.9)") +
+  theme_minimal()+
+  geom_segment(data = line_data, 
+               aes(x = migration_per_gen-0.25, 
+                   xend = migration_per_gen+0.25, 
+                   y = final_pop_size, 
+                   yend = final_pop_size), 
+               color = "red", 
+               size = 1)
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 0.9)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included \n fitnessAa = 0.9") +
+  theme_minimal()
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 1)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included\n fitnessAa = 1") +
+  theme_minimal()
+
+
+
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 1.1)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included\n fitnessAa = 1.1") +
+  theme_minimal()
+
+
+
+```
+
+
+
