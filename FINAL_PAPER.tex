@@ -1,0 +1,183 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Influence of maladaptive migrants on a dying population},
+  pdfauthor={Florin Suter, Balz Fuchs, Felix Rentschler},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Influence of maladaptive migrants on a dying population}
+\author{Florin Suter, Balz Fuchs, Felix Rentschler}
+\date{}
+
+\begin{document}
+\maketitle
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+In conservation we often see introduction of migrants as a way to save a
+doomed population. There are many examples of this as for example the
+rescue of the Florida panther (Puma concolor coryi) population by
+introducing panthers from other regions to increase the populations gene
+pool and thus rescue them from inbreeding depression.
+
+However, in this model we thought about a diploid populations (aa) that
+is maladapted to its environment and can only become a growing
+population by acquiring a certain beneficial mutation (AA). Our
+hypothetical scientists are attempting to save the population by
+introducing migrants from a source population that doesn't carry the
+beneficial allele and thus is also maladaptive. In our model we hoped to
+see the impact of a migrating deleterious genotype on the extinction and
+rescue probabilities of our population
+
+\hypertarget{methods}{%
+\section{Methods}\label{methods}}
+
+For this model all coding was done using the language r. For the code
+base r was sufficient however for the visualization of the results
+packages such as ggplot were used to increase legibility.
+
+\hypertarget{source-code}{%
+\subsection{Source code}\label{source-code}}
+
+The base source code used for the further coding of the model was
+provided by the theoretical ecology and evolution (TEE) research group.
+The code models a doomed population that will go extinct but can be
+rescued by the fixation of a beneficial mutation. It simulates this for
+as many generations as are input. The source code can be found on the
+TEE teams platform. The rest of the code was written by us.
+
+\hypertarget{new-code-change-the-name}{%
+\subsection{New code (--\textgreater{} change the
+name)}\label{new-code-change-the-name}}
+
+\hypertarget{simulation-of-one-generation}{%
+\subsubsection{Simulation of one
+generation}\label{simulation-of-one-generation}}
+
+In a first step one generation has to be simulated. As the population is
+diploid there are three starting populations that are set as N\_aa =
+1000, N\_Aa = 0, and N\_AA = 0. As there is a fitness difference between
+the different genotypes these had to be defined aswell. For the fitness
+of the different genotypes we chose fitnessaa = 0.9, fiitnessAa = 0.9,
+and fitnessAA = 1.1. Both the selection coefficient and the decay rate
+are contained in the fitnesses in order to keep the number of parameters
+to a minimum. The next parameter is avagmigrants. This parameter
+represents them mean number of migrants that enter the system in the
+given generation. The genotype of these migrants is always the
+maladptive aa genotype. The final parameter defined for this function is
+the mutation rate mut\_rate = 0.0005. This mutation rate was chosen
+arbitrarily in a way that the average number of mutants per generation
+isn't over one.
+
+The function assumes a Hardy-Weinberg equilibrium. The parts of the code
+dealing with this will be described below. Some variables are mentioned
+below and are not explained. For these please see the code provided in
+the attachment.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The total number of a and A alleles are calculated:
+
+  \emph{a\_tot = 2*N\_aa+N\_Aa}
+\item
+  Number of mutations from A to a and back are calculated:
+
+  \emph{a\_to\_A\_mut = min(rpois(1,a\_tot*mut\_rate),a\_tot)}
+\item
+  p and q are defined as:
+
+  \emph{p = (a\_tot+A\_to\_a\_mut-a\_to\_A\_mut)/(2*tot\_pop)}
+
+  \emph{q = 1-p}
+\item
+  Calculate frequency of the genotypes in the next generation. This is
+  where selection takes place
+
+  \emph{det\_aa\_next = (p\^{}2)*fitnessaa/avg\_fit}
+\item
+  Draw the true number of offspring. Note that migrants are only added
+  to the aa offspring as this is the maladaptive genotype.
+
+  \emph{offsp\_aa = rpois(1, next\_gen\_tot\_pop*det\_aa\_next) +
+  aa\_migrants}
+
+  \emph{offsp\_Aa = rpois(1, next\_gen\_tot\_pop*det\_Aa\_next)}
+
+  \emph{offsp\_AA = rpois(1, next\_gen\_tot\_pop*det\_AA\_next)}
+\end{enumerate}
+
+\hypertarget{simulation-of-population-until-one-of-three-conditions-is-reached}{%
+\subsubsection{Simulation of population until one of three conditions is
+reached}\label{simulation-of-population-until-one-of-three-conditions-is-reached}}
+
+Here the code is run until one of three conditions is reached. The first
+condition is that the population reaches 1.5 times its starting size.
+This is seen as successfully escaping extinction and becoming a growing,
+self sustaining population. The second condition is that the population
+goes extinct. As a population with a continuous stream of incoming
+migrants never stays at zero individuals for long, extinction was
+defined as 10* the number of migrants per generation. The final
+condition that can be reached is that the population surpasses 10000
+generations.
+
+\end{document}
