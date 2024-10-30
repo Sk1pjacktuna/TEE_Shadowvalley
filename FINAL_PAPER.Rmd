@@ -1,0 +1,24 @@
+---
+title: "Influence of maladaptive migrants on a dying population"
+author: "Florin Suter, Balz Fuchs, Felix Rentschler"
+output: html_notebook
+---
+
+# Introduction
+
+In conservation we often see introduction of migrants as a way to save a doomed population. There are many examples of this as for example the rescue of the Florida panther (Puma concolor coryi) population by introducing panthers from other regions to increase the populations gene pool and thus rescue them from inbreeding depression.
+
+However, in this model we thought about a diploid populations (aa) that is maladapted to its environment and can only become a growing population by acquiring a certain beneficial mutation (AA). Our hypothetical scientists are attempting to save the population by introducing migrants from a source population that doesn't carry the beneficial allele and thus is also maladaptive. In our model we hoped to see the impact of a migrating deleterious genotype on the extinction and rescue probabilities of our population
+
+# Methods
+
+For this model all coding was done using the language r. For the code base r was sufficient however for the visualization of the results packages such as ggplot were used to increase legibility.
+
+## Source code
+
+The base source code used for the further coding of the model was provided by the theoretical ecology and evolution (TEE) research group. The code models a doomed population that will go extinct but can be rescued by the fixation of a beneficial mutation. It simulates this for as many generations as are input. The source code can be found on the TEE teams platform. The rest of the code was written by us.
+
+## New code (--\> change the name)
+
+
+
