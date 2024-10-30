@@ -153,5 +153,117 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
 
 ```
 
+```{r}
+df3to7 <- read.csv("eva_data_slay.csv")
+mig3to7 <- matrix(NA, nrow = 3, ncol = 5)
+colnames(mig3to7) <- 3:7
+rownames(mig3to7) <- c("extinction","medium","reached_max")
+for (i in 1:ncol(mig3to7)){
+  mig3to7[,i] <- c(sum(df3to7$success[df3to7$migration_per_gen == i+2] == 1),
+               sum(df3to7$success[df3to7$migration_per_gen == i+2] == 2),
+               sum(df3to7$success[df3to7$migration_per_gen == i+2] == 3))
+}
+mig3to7 <- mig3to7/100
+par(mfrow = c(1, 2), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig3to7, col = colors, names.arg = 3:7, xlab = "mean migrants/ generation", ylab ="proportion in %")
+barplot(mig3to7[3,], names.arg = 3:7, col = colors[3],xlab = "mean migrants/ generation", ylab ="proportion in %")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -1, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
 
+```
 
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df3to7 %>%
+  filter(success == 3)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached") +
+  geom_hline(yintercept = 10000, color = "red", linetype = "dashed", size = 1) +
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 0.9)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 0.9") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 1)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 1") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 1.1)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 1.1") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
