@@ -83,24 +83,20 @@ N_aa <- 1000
 N_Aa <- 0
 N_AA <- 0
 fitnessaa <- 0.9
-fitnessAa <- 1
+fitnessAa <- 0.9
 fitnessAA <- 1.1
 mut_rate <- 0.0005
 t_max <- 10000
 
 # determine how often to run the simulation for each set of parameters
-no_replicates <- 1000
+no_replicates <- 10000
 # initialize data table - where to collect the results
 # run the simulation across all chosen parameters
 # loop over switch generations
-migrants <- 0:10
+migrants <- 3:7
 iteration_values <- sort(rep(migrants,no_replicates))
 data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants)*length(fitnessAa),ncol = 8))
-modes <- c(1,1.1)
-zahl <- length(iteration_values)
-for (heterozygotes in modes){
-  fitnessAa <- heterozygotes
-  for(i in 1:length(iteration_values)){
+for(i in 1:length(iteration_values)){
     one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i], mut_rate, t_max)
     # determine total population sizes
     total_size <- head(one_run[,1],-1) + head(one_run[,2],-1) + head(one_run[,3],-1)
@@ -120,12 +116,12 @@ for (heterozygotes in modes){
     # determine success
     success <- tail(one_run[,1],1)
     # enter the data into the table
-    data_table[zahl+i,] <- c(iteration_values[i],fitnessAa,number_of_generations,min_size,min_gen,final_pop_size,p_final,success) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+    data_table[i,] <- c(iteration_values[i],fitnessAa,number_of_generations,min_size,min_gen,final_pop_size,p_final,success) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
   }
-  zahl <- zahl+length(iteration_values)
-}
+
+
 colnames(data_table) <-c("migration_per_gen","fitnessAa","number_of_generations","min_size","min_gen","final_pop_size","p_final","success")
-data_table$success[11001:33000] <- as.numeric(as.character(data_table$success[11001:33000]))
+data_table$success <- factor(data_table$success,1:3,c("extinction","medium","reached_max"))
 
 # Recode the numeric values without `factor()`
 data_table$success[11001:33000] <- ifelse(
@@ -133,7 +129,7 @@ data_table$success[11001:33000] <- ifelse(
   ifelse(data_table$success[11001:33000] == 3, "reached_max", NA)
 )
 setwd("C:/Users/flori/OneDrive/Dokumente/Studium/THEE researchpractical/TEE_Shadowvalley")
-data_table <- read.csv("Data_29_10_2024.csv")
+data_table <- read.csv("eva_data_slay.csv")
 
 
 hist(data_table$final_pop_size)
@@ -163,16 +159,17 @@ hist(data_table$p_final[data_table$migration_per_gen == 9])
 hist(data_table$p_final[data_table$migration_per_gen == 10])
 
 
-mig <- matrix(NA,nrow = 3, ncol = 11)
-for (i in 0:(ncol(mig)-1)){
-  mig[,i+1] <- c(sum(data_table$success[data_table$migration_per_gen == i] == "extinction"),
+mig <- matrix(NA,nrow = 3, ncol = 5)
+for (i in 3:7){
+  mig[,i-2] <- c(sum(data_table$success[data_table$migration_per_gen == i] == "extinction"),
                sum(data_table$success[data_table$migration_per_gen == i] == "medium"),
                sum(data_table$success[data_table$migration_per_gen == i] == "reached_max"))
 }
 par(mfrow = c(2,1))
 barplot(mig, col = c("red","orange","green"), names.arg = 0:10)
-barplot(mig[3,], names.arg = 0:10)
+barplot(mig[3,], names.arg = 3:7)
 
+par(mfrow=c(1,1))
 sum(data_table$success[data_table$migration_per_gen == 10] =="extinction")
 gen_for_success3 <- data_table$number_of_generations[data_table$success== "reached_max"&data_table$migration_per_gen==3]
 gen_for_success4 <- data_table$number_of_generations[data_table$success== "reached_max"&data_table$migration_per_gen==4]

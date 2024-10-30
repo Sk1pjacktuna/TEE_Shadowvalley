@@ -1,0 +1,68 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is the data analysis part juhuuu.
+first we load the data
+
+```{r}
+# Analysis for the presentation
+setwd("C:/Users/flori/OneDrive/Dokumente/Studium/THEE researchpractical/TEE_Shadowvalley")
+# get the data frame
+df <- read.csv("Data_29_10_2024.csv")
+```
+then we prepare it for our main plot:
+```{r}
+# make a matrix with the amount of each outcome per mig rate
+mig <- matrix(NA,nrow = 3, ncol = 11)
+for (i in 0:(ncol(mig)-1)){
+  mig[,i+1] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "extinction"),
+                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "medium"),
+                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "reached_max"))
+}
+# translate it into %
+mig <- mig/20
+```
+after that we plot the graph:
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = (c(1,2)))
+barplot(mig, col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %")
+barplot(mig[3,], names.arg = 0:10, col = colors[3],xlab = "mean migrants/ generation", ylab ="proportion in %")
+legend("topright", legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+now we create a matrix with the outcomes of the other heterozygote modes
+```{r}
+mig1and1.1 <- matrix(NA,nrow = 3, ncol = 22)
+x <- 0
+for (j in c(1,1.1)){
+  for (i in 0:(ncol(mig)-1)){
+    mig1and1.1[,i+1+x] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "extinction"),
+                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "medium"),
+                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "reached_max"))
+  }
+  x <- x+11
+}
+mig1and1.1 <- mig1and1.1/10
+```
+
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig1and1.1[,1:11], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Heterozygotes with intermediate fitness")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+Dominant mutation
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig1and1.1[,12:22], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Dominant mutation")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
