@@ -68,3 +68,9 @@ This function contains most of the same parameters as the function explained abo
 2.  Next we have a nestled if command. This loop breaks off the simulation if a population size is generated, that is more than 1.5 times the size of the initial population size.
 
 3.  The final else if command breaks of the simulation if the minimal populations size goes below the threshold of 2\*avgmigrants at which point the population is assumed to be functionally extinct.
+
+# Results
+
+# Discussion
+
+# Conclusion
