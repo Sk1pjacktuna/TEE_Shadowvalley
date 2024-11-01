@@ -1,6 +1,7 @@
 ---
 title: "Influence of maladaptive migrants on a dying population"
 author: "Florin Suter, Balz Fuchs, Felix Rentschler"
+date: "WIP WIP WIP WIP WIP WIP WIP"
 output:
   html_document:
     df_print: paged
@@ -10,9 +11,9 @@ output:
 
 # Introduction
 
-In conservation we often see introduction of migrants as a way to save a doomed population. There are many examples of this as for example the rescue of the Florida panther (Puma concolor coryi) population by introducing panthers from other regions to increase the populations gene pool and thus rescue them from inbreeding depression.
+In conservation we often see introduction of migrants as a way to save a doomed population. There are many examples of this like for example the rescue of the Florida panther (*Puma concolor coryi*) population by introducing panthers from other regions to increase the populations gene pool and thus rescue them from inbreeding depression.
 
-However, in this model we thought about a diploid populations (aa) that is maladapted to its environment and can only become a growing population by acquiring a certain beneficial mutation (AA). Our hypothetical scientists are attempting to save the population by introducing migrants from a source population that doesn't carry the beneficial allele and thus is also maladaptive. In our model we hoped to see the impact of a migrating deleterious genotype on the extinction and rescue probabilities of our population
+However, in this model we thought about a diploid populations (aa) that is maladapted to its environment and can only become a growing population by acquiring a certain beneficial mutation (AA). Our hypothetical scientists are attempting to save the population by introducing migrants from a source population that doesn't carry the beneficial allele and thus is also maladaptive. Additionally there is a second problem, the beneficial allele is recessive meaning that only a homozygote mutant can reap the benefits of the mutation. In our model we hoped to see the impact of a migrating deleterious genotype on the extinction and rescue probabilities of our population.
 
 # Methods
 
