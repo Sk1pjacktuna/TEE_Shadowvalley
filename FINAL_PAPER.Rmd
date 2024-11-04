@@ -69,6 +69,7 @@ This function contains most of the same parameters as the function explained abo
 
 3.  The final else if command breaks of the simulation if the minimal populations size goes below the threshold of 2\*avgmigrants at which point the population is assumed to be functionally extinct.
 
+<<<<<<< HEAD
 As output of this simulation we get a matrix with the simulated generations as rows and the three possible genotypes as columns. In each row there is the total amount of carriers of each genotype. At the end there will be one of three numbers: 1, 2 or 3. These numbers tell us what happend at the end of the simulation, with 1 meaning extinction, 3 meaning it reached 1.5\* N0 and 2 meaning it did not reach any of these thresholds.
 
 ### Simulation of multiple replicates with changing migrants
@@ -80,6 +81,11 @@ The code works as followed:
 At first a vector is made with each value of migration repeated no_replicates times. Then we prepare the data frame where the values will be stored. It has as many rows as simulations will be made and as many columns as data points will be extracted. The desired extracted data points in our case are: avgmigrants, fitness of the heterozygote, number of generations the simulation has run, the minimal population size the population has gone through, the time until the minimal population size was reached, the final population size, the final allele frequency of small a and what happend at the end of the simulation, namely extinction, medium or it reached the defined maximum.
 
 Then a for loop starts which runs one simulation per iteration. It first simulates one population, extracts the desired values we need for analysis and assigns them to the data frame in the appropriate row.
+=======
+With the two above described codes we generated our data. For the analysis we encoded other things which will not be described here. These other codes can be found in the attachments.
+
+As mentioned above, the simulation was run with a starting population of 1000 individuals and a maximum run time of 10000 generations. In order to get good results for each number of incoming migrants the simulation for each number of migrants was run 1000 times, ensuring that the average would depict the true average quite well.
+>>>>>>> 696e6a13f2b1318fae5324ef106be9333012c327
 
 # Results
 
@@ -238,3 +244,5 @@ The proportion that reach the defined maximum get even bigger with a dominant mu
 # Discussion
 
 # Conclusion
+
+# Attachments
