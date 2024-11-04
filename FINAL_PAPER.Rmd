@@ -69,8 +69,14 @@ This function contains most of the same parameters as the function explained abo
 
 3.  The final else if command breaks of the simulation if the minimal populations size goes below the threshold of 2\*avgmigrants at which point the population is assumed to be functionally extinct.
 
+With the two above described codes we generated our data. For the analysis we encoded other things which will not be described here. These other codes can be found in the attachments.
+
+As mentioned above, the simulation was run with a starting population of 1000 individuals and a maximum run time of 10000 generations. In order to get good results for each number of incoming migrants the simulation for each number of migrants was run 1000 times, ensuring that the average would depict the true average quite well.
+
 # Results
 
 # Discussion
 
 # Conclusion
+
+# Attachments
