@@ -89,14 +89,18 @@ mut_rate <- 0.0005
 t_max <- 10000
 
 # determine how often to run the simulation for each set of parameters
-no_replicates <- 10000
+no_replicates <- 2000
 # initialize data table - where to collect the results
 # run the simulation across all chosen parameters
 # loop over switch generations
-migrants <- 3:7
+migrants <- 0:10
+fitnessAa <- c(0.9,1,1.1)
 iteration_values <- sort(rep(migrants,no_replicates))
 data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants)*length(fitnessAa),ncol = 8))
-for(i in 1:length(iteration_values)){
+zahl <- 0
+set.seed(62016)
+for (i in fitnessAa){
+  for(i in 1:length(iteration_values)){
     one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i], mut_rate, t_max)
     # determine total population sizes
     total_size <- head(one_run[,1],-1) + head(one_run[,2],-1) + head(one_run[,3],-1)
@@ -116,9 +120,10 @@ for(i in 1:length(iteration_values)){
     # determine success
     success <- tail(one_run[,1],1)
     # enter the data into the table
-    data_table[i,] <- c(iteration_values[i],fitnessAa,number_of_generations,min_size,min_gen,final_pop_size,p_final,success) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+    data_table[i+zahl,] <- c(iteration_values[i],fitnessAa,number_of_generations,min_size,min_gen,final_pop_size,p_final,success) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
   }
-
+  zahl <- zahl + length(iteration_values)
+}
 
 colnames(data_table) <-c("migration_per_gen","fitnessAa","number_of_generations","min_size","min_gen","final_pop_size","p_final","success")
 data_table$success <- factor(data_table$success,1:3,c("extinction","medium","reached_max"))

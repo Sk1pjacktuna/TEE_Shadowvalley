@@ -27,7 +27,7 @@ The base source code used for the further coding of the model was provided by th
 
 ### Simulation of one generation
 
-In a first step one generation has to be simulated. As the population is diploid there are three starting populations that are set as N_aa = 1000, N_Aa = 0, and N_AA = 0. As there is a fitness difference between the different genotypes these had to be defined as well. For the fitness of the different genotypes we chose fitnessaa = 0.9, fiitnessAa = 0.9, and fitnessAA = 1.1. Both the selection coefficient and the decay rate are contained in the fitnesses in order to keep the number of parameters to a minimum. The next parameter is avagmigrants. This parameter represents them mean number of migrants that enter the system in the given generation. Here it is important to note that this is the parameter that is varied. We tested the model with zero to ten migrants. The genotype of these migrants is always the maladptive aa genotype. The final parameter defined for this function is the mutation rate mut_rate = 0.0005. This mutation rate was chosen arbitrarily in a way that the average number of mutants per generation isn't over one.
+In a first step one generation has to be simulated. As the population is diploid there are three starting populations that are set as N_aa = 1000, N_Aa = 0, and N_AA = 0. As there is a fitness difference between the different genotypes these had to be defined as well. For the fitness of the different genotypes we chose fitnessaa = 0.9, fiitnessAa = 0.9, and fitnessAA = 1.1. Both the selection coefficient and the decay rate are contained in the fitnesses in order to keep the number of parameters to a minimum. The next parameter is avgmigrants. This parameter represents them mean number of migrants that enter the system in the given generation. Here it is important to note that this is the parameter that is varied. We tested the model with zero to ten migrants. The genotype of these migrants is always the maladptive aa genotype. The final parameter defined for this function is the mutation rate mut_rate = 0.0005. This mutation rate was chosen arbitrarily in a way that the average number of mutants per generation isn't over one.
 
 The function assumes a Hardy-Weinberg equilibrium. The parts of the code dealing with this will be described below. Some variables are mentioned below and are not explained. For these please see the code provided in the attachment.
 
@@ -37,11 +37,11 @@ The function assumes a Hardy-Weinberg equilibrium. The parts of the code dealing
 
 2.  Number of mutations from A to a and back are calculated:
 
-    *a_to_A\_mut = min(rpois(1,a_tot\*mut_rate),a_tot)*
+    *a_to_A_mut = min(rpois(1,a_tot\*mut_rate),a_tot)*
 
 3.  p and q are defined as:
 
-    *p = (a_tot+A_to_a\_mut-a_to_A\_mut)/(2\*tot_pop)*
+    *p = (a_tot+A_to_a_mut-a_to_A_mut)/(2\*tot_pop)*
 
     *q = 1-p*
 
@@ -59,7 +59,7 @@ The function assumes a Hardy-Weinberg equilibrium. The parts of the code dealing
 
 ### Simulation of population until one of three conditions is reached
 
-Here the code is run until one of three conditions is reached. The first condition is that the population reaches 1.5 times its starting size. This is seen as successfully escaping extinction and becoming a growing, self sustaining population. The second condition is that the population goes extinct. As a population with a continuous stream of incoming migrants never stays at zero individuals for long, extinction is defined as 10\* the number of migrants per generation. The final condition that can be reached is that the population surpasses t_max = 10000 generations. This is a fail safe that ensures that the simulation stops at some point and does not run indefinitely.
+Here the code is run until one of three conditions is reached. The first condition is that the population reaches 1.5 times its starting size. This is seen as successfully escaping extinction and becoming a growing, self sustaining population. The second condition is that the population goes extinct. As a population with a continuous stream of incoming migrants never stays at zero individuals for long, extinction is defined as 2\* the number of migrants per generation. The final condition that can be reached is that the population surpasses t_max = 10000 generations. This is a fail safe that ensures that the simulation stops at some point and does not run indefinitely.
 
 This function contains most of the same parameters as the function explained above. As this function runs for more than just one generation the labels for N_aa, N_Aa, and N_AA have been changed to N_init_aa, N_init_Aa, and N_init_AA. The only new parameter is the aforementioned t_max which represents the maximum number of generations that the model should simulate. The important steps of the function will once again be outlined below. As above some steps will be left out and can be found down below in the attachment.
 
@@ -69,7 +69,171 @@ This function contains most of the same parameters as the function explained abo
 
 3.  The final else if command breaks of the simulation if the minimal populations size goes below the threshold of 2\*avgmigrants at which point the population is assumed to be functionally extinct.
 
+As output of this simulation we get a matrix with the simulated generations as rows and the three possible genotypes as columns. In each row there is the total amount of carriers of each genotype. At the end there will be one of three numbers: 1, 2 or 3. These numbers tell us what happend at the end of the simulation, with 1 meaning extinction, 3 meaning it reached 1.5\* N0 and 2 meaning it did not reach any of these thresholds.
+
+### Simulation of multiple replicates with changing migrants
+
+To get an idea, how the population is influenced from changing migration we coded a for- loop that makes as many replicates for as many values of mean migrants per generation as desired. First the parameter had to be set, these are almost the same as for the function that simulated one population. The only difference is the parameter no_replicates which defines how many replicates we want and that avgmigrants is now a variable parameter. It therefore needs to be a vector with the desired values of mean migrants per generation that will be simulated.
+
+The code works as followed:
+
+At first a vector is made with each value of migration repeated no_replicates times. Then we prepare the data frame where the values will be stored. It has as many rows as simulations will be made and as many columns as data points will be extracted. The desired extracted data points in our case are: avgmigrants, fitness of the heterozygote, number of generations the simulation has run, the minimal population size the population has gone through, the time until the minimal population size was reached, the final population size, the final allele frequency of small a and what happend at the end of the simulation, namely extinction, medium or it reached the defined maximum.
+
+Then a for loop starts which runs one simulation per iteration. It first simulates one population, extracts the desired values we need for analysis and assigns them to the data frame in the appropriate row.
+
 # Results
+
+By running the simulation 2000 times for 11 different average immigrating individuals, we got the following results.
+
+```{r include=FALSE}
+setwd("C:/Users/flori/OneDrive/Dokumente/Studium/THEE researchpractical/TEE_Shadowvalley") # get the data frame 
+df <- read.csv("Data_29_10_2024.csv")
+# make a matrix with the amount of each outcome per mig rate
+mig <- matrix(NA,nrow = 3, ncol = 11)
+for (i in 0:(ncol(mig)-1)){
+  mig[,i+1] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "extinction"),
+                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "medium"),
+                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "reached_max"))
+}
+# translate it into %
+mig <- mig/20
+```
+
+```{r echo=FALSE}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = (c(1,2)))
+barplot(mig, col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %")
+barplot(mig[3,], names.arg = 0:10, col = colors[3],xlab = "mean migrants/ generation", ylab ="proportion in %")
+legend("topright", legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+*The proportion of outcomes of the simulations we did. On the x- axis the different migration values are presented and on the y- axis the proportion of the outcomes is shown. The barplot on the right shows a closer look at the populations that reached the defined maximum = N0\*1.5. Note that the y- axes are on a different scale.*
+
+In general it was shown, that the more immigrants there are, the more likely it was that the population could persist. However it was also shown that the probability for the population to grow on its own decreased as more migrants where introduced per generation.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 0.9) %>%
+  mutate(final_pop_size = ifelse(final_pop_size == 0,0.1, final_pop_size))
+
+line_data <- data.frame(
+  migration_per_gen = 1:11,
+  final_pop_size = 2 * (0:10)
+) %>%
+  mutate(final_pop_size = ifelse(final_pop_size == 0, 0.1, final_pop_size))
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = final_pop_size)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  scale_y_log10()+
+  labs(x = "Mean Migrants per Generation", y = "Final Population Size",
+       title = "Distribution of Final Population Size by Migration per Generation\n(fitnessAa = 0.9)") +
+  theme_minimal()+
+  geom_segment(data = line_data, 
+               aes(x = migration_per_gen-0.25, 
+                   xend = migration_per_gen+0.25, 
+                   y = final_pop_size, 
+                   yend = final_pop_size), 
+               color = "red", 
+               size = 1)
+```
+
+*The final population size of the simulations depending on the different migration values is showed here. The populations that reached 0 were transformed to 0.1 to be able to put them on a* *logarithmic scale. In red there are the defined extinction thresholds.*
+
+The final population size is at low migration values either at the extinction threshold or at the defined maximum. With mean immigrants per generation passing 5 it shows another stable state at around 10\*average migrants. This is at the most extreme with 10 migrants per generation where only 1 population went extinct and all the others stayed around 10\* 10.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 0.9)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included \n fitnessAa = 0.9") +
+  theme_minimal()
+```
+
+*The final allele frequency of the wt allele. Note that only the populations which did not reach 0 were included.*
+
+The final allele frequency shows a pattern where the mutant allele only got fixed in the populations which reached the maximum. And in the populations with wt immigrants complete fixation cannot happen.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 0.9)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 0.9") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+*The time until the defined maximum was reached. The amount of populations that reached the maximum are shown above, shown with n=...*
+
+The time to reach the maximum increased when more migrants where coming in per generation, until no populations reached the maximum at all.
+
+```{r include=FALSE}
+mig1and1.1 <- matrix(NA,nrow = 3, ncol = 22)
+x <- 0
+for (j in c(1,1.1)){
+  for (i in 0:(ncol(mig)-1)){
+    mig1and1.1[,i+1+x] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "extinction"),
+                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "medium"),
+                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "reached_max"))
+  }
+  x <- x+11
+}
+mig1and1.1 <- mig1and1.1/10
+```
+
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig1and1.1[,1:11], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Heterozygotes with intermediate fitness")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+*Proportion of outcomes of the populations with heterozygotes at intermediate fitness. The x- axis shows how many migrants per generation get into the population. Note that the migrants still are homozygote wildtype.*
+
+With heterozygote intermediate fitness the proportion that reached max gets bigger and the proportion that persisted between the two thresholds is not present anymore.
+
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig1and1.1[,12:22], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Dominant mutation")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+*Proportion of outcomes of the populations with dominant mutation. The x- axis shows how many migrants per generation get into the population. Note that the migrants still are homozygote wildtype.*
+
+The proportion that reach the defined maximum get even bigger with a dominant mutation and the extinction probability got smaller. The probability to persist between the two thresholds is non existent.
 
 # Discussion
 
