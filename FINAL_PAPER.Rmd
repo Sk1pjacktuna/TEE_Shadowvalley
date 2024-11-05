@@ -37,11 +37,11 @@ The function assumes a Hardy-Weinberg equilibrium. The parts of the code dealing
 
 2.  Number of mutations from A to a and back are calculated:
 
-    *a_to_A\_mut = min(rpois(1,a_tot\*mut_rate),a_tot)*
+    *a_to_A_mut = min(rpois(1,a_tot\*mut_rate),a_tot)*
 
 3.  p and q are defined as:
 
-    *p = (a_tot+A_to_a\_mut-a_to_A\_mut)/(2\*tot_pop)*
+    *p = (a_tot+A_to_a_mut-a_to_A_mut)/(2\*tot_pop)*
 
     *q = 1-p*
 
@@ -90,8 +90,8 @@ As mentioned above, the simulation was run with a starting population of 1000 in
 By running the simulation 2000 times for 11 different average immigrating individuals, we got the following results.
 
 ```{r include=FALSE}
-#setwd("C:/Users/flori/OneDrive/Dokumente/Studium/THEE researchpractical/TEE_Shadowvalley") # get the data frame 
-df <- read.csv("Data_29_10_2024.csv")
+ # get the data frame 
+df <- read.csv("Data_2000_reps_from_everything.csv")
 # make a matrix with the amount of each outcome per mig rate
 mig <- matrix(NA,nrow = 3, ncol = 11)
 for (i in 0:(ncol(mig)-1)){
@@ -171,7 +171,7 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
 
 The final allele frequency shows a pattern where the mutant allele only got fixed in the populations which reached the maximum. And in the populations with wt immigrants complete fixation cannot happen.
 
-```{r}
+```{r echo=FALSE}
 library(ggplot2)
 library(dplyr)
 
@@ -213,7 +213,7 @@ for (j in c(1,1.1)){
 mig1and1.1 <- mig1and1.1/10
 ```
 
-```{r}
+```{r echo=FALSE}
 library("viridis")
 colors <- viridis(3,begin = 0.2,end = 0.8)
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
@@ -237,7 +237,7 @@ legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached M
 
 *Proportion of outcomes of the populations with dominant mutation. The x- axis shows how many migrants per generation get into the population. Note that the migrants still are homozygote wildtype.*
 
-The proportion that reach the defined maximum get even bigger with a dominant mutation and the extinction probability got smaller. The probability to persist between the two thresholds is non existent.
+The proportion that reach the defined maximum get even bigger with a dominant mutation and the extinction probability got smaller. The probability to persist between the two thresholds is non existent anymore.
 
 # Discussion
 
