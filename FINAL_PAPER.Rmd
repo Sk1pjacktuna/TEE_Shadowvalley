@@ -247,13 +247,19 @@ Now we come to the discussion. As a reminder we will reiterate our biological qu
 
 2.  How big is the probability for a diploid population to be rescued under the influence of the migration of a maladaptive, dominant genotype?
 
-The first graph already gives a lot of information to answer these questions. As mentioned in the methods section the graph depicts the proportion of runs that reached each of the three break-off states for 1-10 migrants. As can be seen in the graph on the left, the probability of the population being rescued (the mutant genotype
 ```{r echo=FALSE, fig.align='right', out.width='40%', out.extra='style="float:right;padding:5px"'}
 knitr::include_graphics('images/FULL_IMAGE_TOT.png')
 
 
 ```
-taking over) is very low and only seems to happen with any consistency at very low levels of migration. To show the true extent of rescue we decided to extract the rescued populations and visualize these in a second graph (right). As is made clear, the percentage of rescued populations is very small at low migration levels and nonexistent in populations that experience on average more than seven migrants.
+
+The first graph already gives a lot of information to answer these questions. As mentioned in the methods section the graph depicts the proportion of runs that reached each of the three break-off states for 1-10 migrants. As can be seen in the graph on the left, the probability of the population being rescued (the mutant genotype taking over) is very low and only seems to happen with any consistency at very low levels of migration. To show the true extent of rescue we decided to extract the rescued populations and visualize these in a second graph (right). As is made clear, the percentage of rescued populations is very small at low migration levels and nonexistent in populations that experience on average more than seven migrants.
+
+```{r echo=FALSE, fig.align='left', out.width='40%', out.extra='style="float:left;padding:5px"'}
+knitr::include_graphics('images/TESTO.png')
+
+
+```
 
 In the above graph we noticed an interesting pattern. The rescue probability seems to rise slightly around five migrants. Although the chances of this being a meaningful pattern seemed quite small (the rescue probability at this point is only 0.5%) we decided to test this phenomenon. To do so the simulation was rerun and only the outputs for 3-7 migrants per generation were graphed. As is is made clear by the graph (and also intuition), there is no causation for the slight increase in rescue probability seen above except for stochasticity.
 
