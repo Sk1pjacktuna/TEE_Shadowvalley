@@ -94,12 +94,12 @@ no_replicates <- 2000
 # run the simulation across all chosen parameters
 # loop over switch generations
 migrants <- 0:10
-fitnessAa <- c(0.9,1,1.1)
+fitness <- c(0.9,1,1.1)
 iteration_values <- sort(rep(migrants,no_replicates))
-data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants)*length(fitnessAa),ncol = 8))
+data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants)*length(fitness),ncol = 8))
 zahl <- 0
 set.seed(62016)
-for (i in fitnessAa){
+for (fitnessAa in fitness){
   for(i in 1:length(iteration_values)){
     one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i], mut_rate, t_max)
     # determine total population sizes
@@ -128,6 +128,7 @@ for (i in fitnessAa){
 colnames(data_table) <-c("migration_per_gen","fitnessAa","number_of_generations","min_size","min_gen","final_pop_size","p_final","success")
 data_table$success <- factor(data_table$success,1:3,c("extinction","medium","reached_max"))
 
+ds <- read.csv("Data_2000_reps_from_everything.csv")
 # Recode the numeric values without `factor()`
 data_table$success[11001:33000] <- ifelse(
   data_table$success[11001:33000] == 1, "extinction",
