@@ -1,0 +1,391 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+first we make the code to simulate one generation
+
+```{r}
+simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate) {
+  # calculate total pop size
+  tot_pop <- N_aa+N_Aa+N_AA
+  # calculate average fitness
+  avg_fit <- weighted.mean(c(fitnessaa, fitnessAa, fitnessAA), c(N_aa,N_Aa, N_AA))
+  # calculate deterministic next gen pop size
+  next_gen_tot_pop <- tot_pop*avg_fit
+  # calculate the allele frequnecies
+  a_tot <- 2*N_aa+N_Aa
+  A_tot <- 2*N_AA+N_Aa
+  a_to_A_mut <- min(rpois(1,a_tot*mut_rate),a_tot)
+  A_to_a_mut <- min(rpois(1,A_tot*mut_rate),A_tot)
+  p <- (a_tot+A_to_a_mut-a_to_A_mut)/(2*tot_pop)
+  q <- 1-p
+  # Next generation genotype frequencies; selection is applied here
+  det_aa_next <- (p^2)*fitnessaa/avg_fit
+  det_Aa_next <- (2*p*q)*fitnessAa/avg_fit
+  det_AA_next <- (q^2)*fitnessAA/avg_fit
+  
+  #migrationrate
+  aa_migrants <- rpois(1, avgmigrants)
+  # draw offspring according to Poisson distribution
+  offsp_aa <- rpois(1, next_gen_tot_pop*det_aa_next) + aa_migrants
+  offsp_Aa <- rpois(1, next_gen_tot_pop*det_Aa_next)
+  offsp_AA <- rpois(1, next_gen_tot_pop*det_AA_next)
+  
+  
+  return(c(offsp_aa, offsp_Aa,offsp_AA))
+}
+```
+
+then we use this to simulate a whole population with t_max as maximal generations
+
+```{r}
+simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate, t_max) {
+  # Create the vector in which to save the results
+  pop_vector <- c(N_init_aa, N_init_Aa, N_init_AA)
+  # initiate the variables
+  pop_new <- c(N_init_aa, N_init_Aa, N_init_AA)
+  v <- 0
+  success <- 2
+  # run the simulation until generation t_max
+  for (i in 1:t_max+1) {
+    #define fitness of a and A for each iteration
+    # redefine the current population one generation later
+    pop_new <- simulate_one_gen_hardy_weinberg(pop_new[1],pop_new[2], pop_new[3], fitnessaa, fitnessAa, fitnessAA,avgmigrants, mut_rate)
+   # add the new population sizes to the output vector
+    pop_vector <- rbind(pop_vector,pop_new) 
+    # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
+    if (pop_new[1]+pop_new[2]+pop_new[3]>=5*(N_init_aa+ N_init_Aa+ N_init_AA)){
+      success <- 3
+      break
+    }else if (pop_new[1]+pop_new[2]+pop_new[3]<=2*avgmigrants){
+      success <- 1
+      break
+    }
+  }
+  pop_vector <- rbind(pop_vector,success)
+  # define the row and column names of the output vector
+  rownames(pop_vector) <- (0:(t_max+1))[1:length(pop_vector[,1])] # note that the vector has to be cut if the simulation stopped early
+  colnames(pop_vector) <- c("aa","Aa","AA")
+  # return the result
+  return(pop_vector)	
+}
+```
+
+And then we make a thousand replicates for 0:10 migrates per generation
+
+### This chunk takes very long to run, please just run the one below
+
+```{r eval=FALSE}
+N_aa <- 1000
+N_Aa <- 0
+N_AA <- 0
+fitnessaa <- 0.9
+fitnessAa <- 0.9
+fitnessAA <- 1.1
+mut_rate <- 0.0005
+t_max <- 10000
+
+# determine how often to run the simulation for each set of parameters
+no_replicates <- 2000
+# initialize data table - where to collect the results
+# run the simulation across all chosen parameters
+# loop over switch generations
+migrants <- 0:10
+fitness <- c(0.9,1,1.1)
+iteration_values <- sort(rep(migrants,no_replicates))
+data_table <- data.frame(matrix(NA,nrow = no_replicates*length(migrants)*length(fitness),ncol = 8))
+zahl <- 0
+set.seed(62016)
+for (fitnessAa in fitness){
+  for(i in 1:length(iteration_values)){
+    one_run <- simulate_pop_HW(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, iteration_values[i], mut_rate, t_max)
+    # determine total population sizes
+    total_size <- head(one_run[,1],-1) + head(one_run[,2],-1) + head(one_run[,3],-1)
+    # number of generation at which 1.5*n0 or extinction is achieved
+    number_of_generations <- length(one_run[,1])-1
+    # determine final pop size
+    final_pop_size <- sum(tail(one_run,2)[1,])    
+    # determine minimum population size
+    min_size <- min(total_size)
+    # determine (first) generation at which this population size occurred
+    min_gen <- as.numeric(which(total_size==min_size)[1])
+    # determine maximal pop size
+    max_pop <- max(total_size)
+    # determine final allele frequencies
+    p_final <- (0.5*one_run[number_of_generations,2]+one_run[number_of_generations,1])/final_pop_size
+
+    # determine success
+    success <- tail(one_run[,1],1)
+    # enter the data into the table
+    data_table[i+zahl,] <- c(iteration_values[i],fitnessAa,number_of_generations,min_size,min_gen,final_pop_size,p_final,success) # note that we add the varying parameters (decay rate and selection coefficient) to the table too
+  }
+  zahl <- zahl + length(iteration_values)
+}
+
+colnames(data_table) <-c("migration_per_gen","fitnessAa","number_of_generations","min_size","min_gen","final_pop_size","p_final","success")
+data_table$success <- factor(data_table$success,1:3,c("extinction","medium","reached_max"))
+```
+
+This outputs a data table which we transformed into: Data_2000_reps_from_everything.csv which is faster to load so we can take it from here. The working directory has to be set on the folder where "Data_2000_reps_from_everything.csv" is located!! And viridis needs to be installed.
+
+first a matrix is made with
+
+```{r}
+ds <- read.csv("Data_2000_reps_from_everything.csv")
+mig <- matrix(NA,nrow = 3, ncol = 11)
+for (i in 0:(ncol(mig)-1)){
+  mig[,i+1] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "extinction"),
+                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "medium"),
+                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "reached_max"))
+}
+# translate it into %
+mig <- mig/20
+```
+after that we plot the graph:
+
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = (c(1,2)))
+barplot(mig, col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %")
+barplot(mig[3,], names.arg = 0:10, col = colors[3],xlab = "mean migrants/ generation", ylab ="proportion in %")
+legend("topright", legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+now we create a matrix with the outcomes of the other heterozygote modes
+
+```{r}
+mig1and1.1 <- matrix(NA,nrow = 3, ncol = 22)
+x <- 0
+for (j in c(1,1.1)){
+  for (i in 0:(ncol(mig)-1)){
+    mig1and1.1[,i+1+x] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "extinction"),
+                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "medium"),
+                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "reached_max"))
+  }
+  x <- x+11
+}
+mig1and1.1 <- mig1and1.1/20
+```
+
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig1and1.1[,1:11], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Heterozygotes with intermediate fitness")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+Dominant mutation
+
+```{r}
+library("viridis")
+colors <- viridis(3,begin = 0.2,end = 0.8)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig1and1.1[,12:22], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Dominant mutation")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 0.9) %>%
+  mutate(final_pop_size = ifelse(final_pop_size == 0,0.1, final_pop_size))
+
+line_data <- data.frame(
+  migration_per_gen = 1:11,
+  final_pop_size = 2 * (0:10)
+) %>%
+  mutate(final_pop_size = ifelse(final_pop_size == 0, 0.1, final_pop_size))
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = final_pop_size)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  scale_y_log10()+
+  labs(x = "Mean Migrants per Generation", y = "Final Population Size",
+       title = "Distribution of Final Population Size by Migration per Generation\n(fitnessAa = 0.9)") +
+  theme_minimal()+
+  geom_segment(data = line_data, 
+               aes(x = migration_per_gen-0.25, 
+                   xend = migration_per_gen+0.25, 
+                   y = final_pop_size, 
+                   yend = final_pop_size), 
+               color = "red", 
+               size = 1)
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 0.9)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included \n fitnessAa = 0.9") +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 1)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included\n fitnessAa = 1") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter the data for fitnessAa == 0.9
+filtered_data <- df %>%
+  filter(fitnessAa == 1.1)
+
+# Create a violin plot of final_pop_size against migration_per_gen
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  labs(x = "Mean Migrants per Generation", y = "Final wt Allele Frequency",
+       title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included\n fitnessAa = 1.1") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+df3to7 <- read.csv("eva_data_slay.csv")
+mig3to7 <- matrix(NA, nrow = 3, ncol = 5)
+colnames(mig3to7) <- 3:7
+rownames(mig3to7) <- c("extinction","medium","reached_max")
+for (i in 1:ncol(mig3to7)){
+  mig3to7[,i] <- c(sum(df3to7$success[df3to7$migration_per_gen == i+2] == 1),
+               sum(df3to7$success[df3to7$migration_per_gen == i+2] == 2),
+               sum(df3to7$success[df3to7$migration_per_gen == i+2] == 3))
+}
+mig3to7 <- mig3to7/100
+par(mfrow = c(1, 2), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
+barplot(mig3to7, col = colors, names.arg = 3:7, xlab = "mean migrants/ generation", ylab ="proportion in %")
+barplot(mig3to7[3,], names.arg = 3:7, col = colors[3],xlab = "mean migrants/ generation", ylab ="proportion in %")
+par(xpd = TRUE)  # Allows plotting outside the plot region
+legend("right", inset = -1, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
+
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df3to7 %>%
+  filter(success == 3)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached") +
+  geom_hline(yintercept = 10000, color = "red", linetype = "dashed", size = 1) +
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 0.9)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 0.9") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 1)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 1") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data where success == 3
+filtered_data <- df %>%
+  filter(success == "reached_max" & fitnessAa == 1.1)
+summary_data <- filtered_data %>%
+  group_by(migration_per_gen) %>%
+  summarise(
+    count = n()  # Count of values in each category
+  )
+# Create the plot
+ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generations)) +
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) + 
+  labs(x = "Migration per Generation", y = "Number of Generations",
+       title = "numbers of generation until maximum was reached, fitnessAa = 1.1") +
+  scale_y_log10()+
+  geom_text(data = summary_data, aes(x = factor(migration_per_gen), y = max(filtered_data$number_of_generations) * 1.05, 
+                                     label = paste("n =", count)), 
+            color = "black", size = 3) +
+  theme_minimal()
+```
