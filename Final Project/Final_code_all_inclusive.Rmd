@@ -1,11 +1,14 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 first we make the code to simulate one generation
 
 ```{r}
+setwd("C:/Users/flori/OneDrive/Dokumente/Studium/THEE researchpractical/TEE_Shadowvalley/Final Project")
 simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate) {
   # calculate total pop size
   tot_pop <- N_aa+N_Aa+N_AA
@@ -135,9 +138,9 @@ first a matrix is made with
 ds <- read.csv("Data_2000_reps_from_everything.csv")
 mig <- matrix(NA,nrow = 3, ncol = 11)
 for (i in 0:(ncol(mig)-1)){
-  mig[,i+1] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "extinction"),
-                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "medium"),
-                 sum(df$success[df$migration_per_gen == i & df$fitnessAa ==0.9] == "reached_max"))
+  mig[,i+1] <- c(sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==0.9] == "extinction"),
+                 sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==0.9] == "medium"),
+                 sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==0.9] == "reached_max"))
 }
 # translate it into %
 mig <- mig/20
@@ -160,9 +163,9 @@ mig1and1.1 <- matrix(NA,nrow = 3, ncol = 22)
 x <- 0
 for (j in c(1,1.1)){
   for (i in 0:(ncol(mig)-1)){
-    mig1and1.1[,i+1+x] <- c(sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "extinction"),
-                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "medium"),
-                      sum(df$success[df$migration_per_gen == i & df$fitnessAa ==j] == "reached_max"))
+    mig1and1.1[,i+1+x] <- c(sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "extinction"),
+                      sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "medium"),
+                      sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "reached_max"))
   }
   x <- x+11
 }
@@ -194,7 +197,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter the data for fitnessAa == 0.9
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(fitnessAa == 0.9) %>%
   mutate(final_pop_size = ifelse(final_pop_size == 0,0.1, final_pop_size))
 
@@ -226,7 +229,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter the data for fitnessAa == 0.9
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(fitnessAa == 0.9)
 
 # Create a violin plot of final_pop_size against migration_per_gen
@@ -242,7 +245,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter the data for fitnessAa == 0.9
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(fitnessAa == 1)
 
 # Create a violin plot of final_pop_size against migration_per_gen
@@ -261,7 +264,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter the data for fitnessAa == 0.9
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(fitnessAa == 1.1)
 
 # Create a violin plot of final_pop_size against migration_per_gen
@@ -323,7 +326,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter data where success == 3
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(success == "reached_max" & fitnessAa == 0.9)
 summary_data <- filtered_data %>%
   group_by(migration_per_gen) %>%
@@ -347,7 +350,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter data where success == 3
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(success == "reached_max" & fitnessAa == 1)
 summary_data <- filtered_data %>%
   group_by(migration_per_gen) %>%
@@ -371,7 +374,7 @@ library(ggplot2)
 library(dplyr)
 
 # Filter data where success == 3
-filtered_data <- df %>%
+filtered_data <- ds %>%
   filter(success == "reached_max" & fitnessAa == 1.1)
 summary_data <- filtered_data %>%
   group_by(migration_per_gen) %>%
