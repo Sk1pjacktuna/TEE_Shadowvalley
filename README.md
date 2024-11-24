@@ -17,4 +17,4 @@ The folder "Final Project" contains the finalized project:
 
 The folder "Images" contains some screenshots of data and a sketch of the model
 
-
+The rest of the files are a combination of earlier projects that were later discarded (shadowvalley, sesons model) and r script of the final model. These files are not important for the generation or visualization of the data as these files are found in the "Final Project" folder.
