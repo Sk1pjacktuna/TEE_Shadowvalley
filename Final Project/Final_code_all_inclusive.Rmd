@@ -5,7 +5,7 @@ output:
     df_print: paged
 ---
 
-first we make the code to simulate one generation
+At the beginning we are making the function for one generation. It requires the variables N_aa, N_Aa and N_AA as the number of individuals with each genotype, it does further need the input of the fitness of each genotype, the average number of migrants and the mutation rate.
 
 ```{r}
 setwd("C:/Users/flori/OneDrive/Dokumente/Studium/THEE researchpractical/TEE_Shadowvalley/Final Project")
@@ -16,31 +16,31 @@ simulate_one_gen_hardy_weinberg <- function(N_aa,N_Aa, N_AA, fitnessaa, fitnessA
   avg_fit <- weighted.mean(c(fitnessaa, fitnessAa, fitnessAA), c(N_aa,N_Aa, N_AA))
   # calculate deterministic next gen pop size
   next_gen_tot_pop <- tot_pop*avg_fit
-  # calculate the allele frequnecies
+  # calculate the total allele abundance
   a_tot <- 2*N_aa+N_Aa
   A_tot <- 2*N_AA+N_Aa
+  # Calculate the number of mutations
   a_to_A_mut <- min(rpois(1,a_tot*mut_rate),a_tot)
   A_to_a_mut <- min(rpois(1,A_tot*mut_rate),A_tot)
+  # Calculate the allele frequencies
   p <- (a_tot+A_to_a_mut-a_to_A_mut)/(2*tot_pop)
   q <- 1-p
   # Next generation genotype frequencies; selection is applied here
   det_aa_next <- (p^2)*fitnessaa/avg_fit
   det_Aa_next <- (2*p*q)*fitnessAa/avg_fit
   det_AA_next <- (q^2)*fitnessAA/avg_fit
-  
-  #migrationrate
+  # draw the number of migrants
   aa_migrants <- rpois(1, avgmigrants)
   # draw offspring according to Poisson distribution
   offsp_aa <- rpois(1, next_gen_tot_pop*det_aa_next) + aa_migrants
   offsp_Aa <- rpois(1, next_gen_tot_pop*det_Aa_next)
   offsp_AA <- rpois(1, next_gen_tot_pop*det_AA_next)
-  
-  
+  # Return the number of individuals of each genotype
   return(c(offsp_aa, offsp_Aa,offsp_AA))
 }
 ```
 
-then we use this to simulate a whole population with t_max as maximal generations
+We use the function for one generation to generate a function which repeats one generation with adapting variables. Adding to the variables and parameters from the function we defined before this function also requires t_max which stops the simulation after t_max generations. If the population reaches 2 \* avgmigrants or 1.5\* N_0.
 
 ```{r}
 simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessAa, fitnessAA, avgmigrants, mut_rate, t_max) {
@@ -52,13 +52,12 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
   success <- 2
   # run the simulation until generation t_max
   for (i in 1:t_max+1) {
-    #define fitness of a and A for each iteration
     # redefine the current population one generation later
     pop_new <- simulate_one_gen_hardy_weinberg(pop_new[1],pop_new[2], pop_new[3], fitnessaa, fitnessAa, fitnessAA,avgmigrants, mut_rate)
    # add the new population sizes to the output vector
     pop_vector <- rbind(pop_vector,pop_new) 
-    # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct
-    if (pop_new[1]+pop_new[2]+pop_new[3]>=5*(N_init_aa+ N_init_Aa+ N_init_AA)){
+    # condition to stop the simulation before t_max: either the population exceeds 1.5 times the original population size, or it goes extinct = 2* avgmigrants
+    if (pop_new[1]+pop_new[2]+pop_new[3]>=1.5*(N_init_aa+ N_init_Aa+ N_init_AA)){
       success <- 3
       break
     }else if (pop_new[1]+pop_new[2]+pop_new[3]<=2*avgmigrants){
@@ -75,10 +74,25 @@ simulate_pop_HW <- function(N_init_aa, N_init_Aa, N_init_AA, fitnessaa, fitnessA
 }
 ```
 
-And then we make a thousand replicates for 0:10 migrates per generation
+We use this function to make 2000 replicates of the each average migration 0,1,2...9,10 and the three modes of inheritance dominant mutation, heterozygote intermediate and recessive mutation. And then we extract the relevant information we want to look at in the data analysis. Specifically this means extracting the following numbers for every run we did:
 
-### This chunk takes very long to run, please just run the one below
+-   Mean migrants that entered the population
 
+-   Fitness of the heterozygote to see at mode of inheritance
+
+-   Number of generations the simulation has run
+
+-   Minimal population size
+
+-   Generations until minimal population size was reached
+
+-   Final population size
+
+-   Final allele frequency of the wildtype allele
+
+-   The outcome: namely if the population went extinct, reached a maximum or if it did not meet any threshold
+
+This code should not be executed because it takes very long to run!!!
 ```{r eval=FALSE}
 N_aa <- 1000
 N_Aa <- 0
@@ -132,11 +146,14 @@ data_table$success <- factor(data_table$success,1:3,c("extinction","medium","rea
 
 This outputs a data table which we transformed into: Data_2000_reps_from_everything.csv which is faster to load so we can take it from here. The working directory has to be set on the folder where "Data_2000_reps_from_everything.csv" is located!! And viridis needs to be installed.
 
-first a matrix is made with
+To analyze the data we first make a matrix with the sum of each outcome under each migration rate
 
 ```{r}
+# Read in the data
 ds <- read.csv("Data_2000_reps_from_everything.csv")
+# Create a empty matrix with the correct amount of rows and columns
 mig <- matrix(NA,nrow = 3, ncol = 11)
+# fill in the according numbers
 for (i in 0:(ncol(mig)-1)){
   mig[,i+1] <- c(sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==0.9] == "extinction"),
                  sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==0.9] == "medium"),
@@ -145,53 +162,66 @@ for (i in 0:(ncol(mig)-1)){
 # translate it into %
 mig <- mig/20
 ```
-after that we plot the graph:
+
+Here we plot the graph with proportions of each outcome at each migration level.
 
 ```{r}
 library("viridis")
+# Defining the colors we want to use
 colors <- viridis(3,begin = 0.2,end = 0.8)
+# let both graphs be besides eachother
 par(mfrow = (c(1,2)))
+# Plot all outcomes
 barplot(mig, col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %")
+# Plot the reached max seperate
 barplot(mig[3,], names.arg = 0:10, col = colors[3],xlab = "mean migrants/ generation", ylab ="proportion in %")
 legend("topright", legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
 ```
 
-now we create a matrix with the outcomes of the other heterozygote modes
+now we create a matrix with the outcomes of the other modes of inheritance, namely heterozygote intermediate and dominant mutation. In the data frame th
 
 ```{r}
+# Create an empty matrix with the right proportions
 mig1and1.1 <- matrix(NA,nrow = 3, ncol = 22)
-x <- 0
+# x is used to count through the whole matrix, not just to column 11
+x <- 1
+# assign the sum of each outcome to the corresponding field
 for (j in c(1,1.1)){
   for (i in 0:(ncol(mig)-1)){
-    mig1and1.1[,i+1+x] <- c(sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "extinction"),
+    mig1and1.1[,i+x] <- c(sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "extinction"),
                       sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "medium"),
                       sum(ds$success[ds$migration_per_gen == i & ds$fitnessAa ==j] == "reached_max"))
   }
   x <- x+11
 }
+# Transform the data into %
 mig1and1.1 <- mig1and1.1/20
 ```
-
+Now we plot the heterozygote intermediate outcomes:
 ```{r}
 library("viridis")
+# Draw the colors
 colors <- viridis(3,begin = 0.2,end = 0.8)
+# Settings to make only one plot but leave space for the legend
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
 barplot(mig1and1.1[,1:11], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Heterozygotes with intermediate fitness")
 par(xpd = TRUE)  # Allows plotting outside the plot region
 legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
 ```
 
-Dominant mutation
+... and for the outcomes with the dominant mutation:
 
 ```{r}
 library("viridis")
+# Draw the colors
 colors <- viridis(3,begin = 0.2,end = 0.8)
+# Settings to make only one plot but leave space for the legend
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 6), oma = c(0, 0, 0, 6))
 barplot(mig1and1.1[,12:22], col = colors, names.arg = 0:10, xlab = "mean migrants/ generation", ylab ="proportion in %", main = "Dominant mutation")
 par(xpd = TRUE)  # Allows plotting outside the plot region
 legend("right", inset = -0.3, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
 ```
-
+Next we want to analyze the outcomes in a deeper way. First we look at the final population size of the recessive mutation in each migration level:
 ```{r}
 library(ggplot2)
 library(dplyr)
@@ -199,31 +229,32 @@ library(dplyr)
 # Filter the data for fitnessAa == 0.9
 filtered_data <- ds %>%
   filter(fitnessAa == 0.9) %>%
-  mutate(final_pop_size = ifelse(final_pop_size == 0,0.1, final_pop_size))
-
+  mutate(final_pop_size = ifelse(final_pop_size == 0,0.1, final_pop_size)) # Transform the 0's to 0.1's to be able to show it on a log scale
+# Draw the positions for the threshold lines
 line_data <- data.frame(
   migration_per_gen = 1:11,
-  final_pop_size = 2 * (0:10)
+  threshold = 2 * (0:10)
 ) %>%
-  mutate(final_pop_size = ifelse(final_pop_size == 0, 0.1, final_pop_size))
+  mutate(threshold = ifelse(threshold == 0, 0.1, threshold))# Transform the 0's to 0.1's to be able to show it on a log scale
 
 # Create a violin plot of final_pop_size against migration_per_gen
 ggplot(filtered_data, aes(x = factor(migration_per_gen), y = final_pop_size)) +
-  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  # Violin plot for distribution
+  geom_violin(fill = "skyblue", color = "darkblue", alpha = 0.6) +  
   scale_y_log10()+
   labs(x = "Mean Migrants per Generation", y = "Final Population Size",
        title = "Distribution of Final Population Size by Migration per Generation\n(fitnessAa = 0.9)") +
   theme_minimal()+
+  # Put the lines in place
   geom_segment(data = line_data, 
                aes(x = migration_per_gen-0.25, 
                    xend = migration_per_gen+0.25, 
-                   y = final_pop_size, 
-                   yend = final_pop_size), 
+                   y = threshold, 
+                   yend = threshold), 
                color = "red", 
                size = 1)
 
 ```
-
+Now we want to take a look at the final allele frequencies
 ```{r}
 library(ggplot2)
 library(dplyr)
@@ -239,12 +270,12 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
        title = "Distribution of Final Allele Frequency by Migration per Generation\n Populations with final Population size = 0 not included \n fitnessAa = 0.9") +
   theme_minimal()
 ```
-
+The heterozygote intermediate scenario also needs to be analyzed for final population size
 ```{r}
 library(ggplot2)
 library(dplyr)
 
-# Filter the data for fitnessAa == 0.9
+# Filter the data for fitnessAa == 1
 filtered_data <- ds %>%
   filter(fitnessAa == 1)
 
@@ -258,12 +289,12 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
 
 
 ```
-
+Now we take a closer look at the Dominant mutation scenario
 ```{r}
 library(ggplot2)
 library(dplyr)
 
-# Filter the data for fitnessAa == 0.9
+# Filter the data for fitnessAa == 1.1
 filtered_data <- ds %>%
   filter(fitnessAa == 1.1)
 
@@ -277,7 +308,7 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = p_final)) +
 
 
 ```
-
+To inspect the hump shaped outcome in reached maximum amount of the initial simulation we ran the simulation another 10'000 times to see if the effect is the same, tis data is stored in the file "eva_data_slay".
 ```{r}
 df3to7 <- read.csv("eva_data_slay.csv")
 mig3to7 <- matrix(NA, nrow = 3, ncol = 5)
@@ -296,12 +327,12 @@ par(xpd = TRUE)  # Allows plotting outside the plot region
 legend("right", inset = -1, legend = c("Extinction", "Persistence", "Reached Max"), fill = colors, bty = "n", cex = 0.8)
 
 ```
-
+To inspect this behaviour further we plot the time it took to reach the maximumon each migration level
 ```{r}
 library(ggplot2)
 library(dplyr)
 
-# Filter data where success == 3
+# Filter data where success == 3 (= reached max)
 filtered_data <- df3to7 %>%
   filter(success == 3)
 summary_data <- filtered_data %>%
@@ -320,7 +351,7 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generatio
             color = "black", size = 3) +
   theme_minimal()
 ```
-
+Because we already have the code, we also analyze the original data set with this plot.
 ```{r}
 library(ggplot2)
 library(dplyr)
@@ -344,7 +375,7 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generatio
             color = "black", size = 3) +
   theme_minimal()
 ```
-
+And because we are already at it we also can make it with the other inheritance modes, here with heterozygote intermediate:
 ```{r}
 library(ggplot2)
 library(dplyr)
@@ -368,7 +399,7 @@ ggplot(filtered_data, aes(x = factor(migration_per_gen), y = number_of_generatio
             color = "black", size = 3) +
   theme_minimal()
 ```
-
+... and with a dominant mutation
 ```{r}
 library(ggplot2)
 library(dplyr)
